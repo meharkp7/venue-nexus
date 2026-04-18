@@ -453,7 +453,7 @@ def main():
     scenarios_data = generator.generate_all_scenarios(100)
     
     # Save to file
-    output_file = "/Users/meharkapoor7/venue-nexus/data/demo_scenarios_100.json"
+    output_file = "data/demo_scenarios_100.json"
     with open(output_file, 'w') as f:
         json.dump(scenarios_data, f, indent=2)
     
