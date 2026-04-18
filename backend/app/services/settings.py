@@ -14,9 +14,5 @@ class Settings:
         )
         self.vertex_project_id: Optional[str] = os.getenv("VERTEX_PROJECT_ID")
         self.vertex_location: Optional[str] = os.getenv("VERTEX_LOCATION")
-        self.google_application_credentials: Optional[str] = os.getenv(
-            "GOOGLE_APPLICATION_CREDENTIALS"
-        )
-
 
 settings = Settings()
