@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - '8000:8000'
+    environment:
+      - API_KEY=venue-nexus-demo
+    volumes:
+      - ./backend/app:/app/app:cached
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_KEY: venue-nexus-demo
+    ports:
+      - '5173:80'
+    environment:
+      - VITE_API_KEY=venue-nexus-demo
+    depends_on:
+      - backend

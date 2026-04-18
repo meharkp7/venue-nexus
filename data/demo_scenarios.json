@@ -1,0 +1,166 @@
+{
+  "scenarios": {
+    "normal_operations": {
+      "name": "Normal Operations",
+      "description": "Standard venue operations with moderate crowd flow",
+      "graph_config": {
+        "nodes": [
+          {"id": "gate_n", "x": 20, "y": 50, "node_type": "gate", "capacity": 500, "density": 0.25, "trend": "stable"},
+          {"id": "gate_s", "x": 20, "y": 80, "node_type": "gate", "capacity": 500, "density": 0.30, "trend": "stable"},
+          {"id": "concourse_n", "x": 40, "y": 35, "node_type": "concourse", "capacity": 800, "density": 0.35, "trend": "down"},
+          {"id": "concourse_s", "x": 40, "y": 65, "node_type": "concourse", "capacity": 800, "density": 0.40, "trend": "stable"},
+          {"id": "concourse_e", "x": 60, "y": 50, "node_type": "concourse", "capacity": 600, "density": 0.28, "trend": "up"},
+          {"id": "concession_nw", "x": 35, "y": 25, "node_type": "concession", "capacity": 200, "density": 0.45, "trend": "stable"},
+          {"id": "concession_se", "x": 35, "y": 75, "node_type": "concession", "capacity": 200, "density": 0.38, "trend": "down"},
+          {"id": "exit_w", "x": 80, "y": 30, "node_type": "exit", "capacity": 400, "density": 0.20, "trend": "stable"},
+          {"id": "exit_e", "x": 80, "y": 70, "node_type": "exit", "capacity": 400, "density": 0.22, "trend": "stable"}
+        ],
+        "edges": [
+          {"source": "gate_n", "target": "concourse_n", "capacity": 300, "flow_rate": 0.8},
+          {"source": "gate_s", "target": "concourse_s", "capacity": 300, "flow_rate": 0.7},
+          {"source": "concourse_n", "target": "concourse_e", "capacity": 400, "flow_rate": 0.6},
+          {"source": "concourse_s", "target": "concourse_e", "capacity": 400, "flow_rate": 0.7},
+          {"source": "concourse_e", "target": "exit_w", "capacity": 350, "flow_rate": 0.5},
+          {"source": "concourse_e", "target": "exit_e", "capacity": 350, "flow_rate": 0.6}
+        ]
+      },
+      "events": [
+        {"timestamp": "2024-01-15T14:30:00Z", "type": "entry", "node_id": "gate_n", "count": 25},
+        {"timestamp": "2024-01-15T14:35:00Z", "type": "movement", "node_id": "concourse_n", "count": 15},
+        {"timestamp": "2024-01-15T14:40:00Z", "type": "purchase", "node_id": "concession_nw", "count": 8}
+      ]
+    },
+    "halftime_rush": {
+      "name": "Halftime Rush",
+      "description": "Peak congestion during halftime with multiple hotspots",
+      "graph_config": {
+        "nodes": [
+          {"id": "gate_n", "x": 20, "y": 50, "node_type": "gate", "capacity": 500, "density": 0.15, "trend": "down"},
+          {"id": "gate_s", "x": 20, "y": 80, "node_type": "gate", "capacity": 500, "density": 0.18, "trend": "down"},
+          {"id": "concourse_n", "x": 40, "y": 35, "node_type": "concourse", "capacity": 800, "density": 0.85, "trend": "up", "predicted_density": 0.92},
+          {"id": "concourse_s", "x": 40, "y": 65, "node_type": "concourse", "capacity": 800, "density": 0.78, "trend": "up", "predicted_density": 0.88},
+          {"id": "concourse_e", "x": 60, "y": 50, "node_type": "concourse", "capacity": 600, "density": 0.92, "trend": "up", "predicted_density": 0.95},
+          {"id": "concession_nw", "x": 35, "y": 25, "node_type": "concession", "capacity": 200, "density": 0.95, "trend": "up"},
+          {"id": "concession_ne", "x": 45, "y": 25, "node_type": "concession", "capacity": 200, "density": 0.88, "trend": "up"},
+          {"id": "concession_sw", "x": 35, "y": 75, "node_type": "concession", "capacity": 200, "density": 0.91, "trend": "up"},
+          {"id": "concession_se", "x": 45, "y": 75, "node_type": "concession", "capacity": 200, "density": 0.86, "trend": "up"},
+          {"id": "exit_w", "x": 80, "y": 30, "node_type": "exit", "capacity": 400, "density": 0.12, "trend": "stable"},
+          {"id": "exit_e", "x": 80, "y": 70, "node_type": "exit", "capacity": 400, "density": 0.10, "trend": "stable"}
+        ],
+        "edges": [
+          {"source": "concourse_n", "target": "concourse_e", "capacity": 400, "flow_rate": 0.3, "is_saturated": true},
+          {"source": "concourse_s", "target": "concourse_e", "capacity": 400, "flow_rate": 0.4, "is_saturated": true},
+          {"source": "concourse_e", "target": "concession_nw", "capacity": 200, "flow_rate": 0.2, "is_saturated": true},
+          {"source": "concourse_e", "target": "concession_ne", "capacity": 200, "flow_rate": 0.3, "is_saturated": true}
+        ]
+      },
+      "events": [
+        {"timestamp": "2024-01-15T15:15:00Z", "type": "congestion_spike", "node_id": "concourse_e", "severity": "high"},
+        {"timestamp": "2024-01-15T15:16:00Z", "type": "queue_formation", "node_id": "concession_nw", "length": 45},
+        {"timestamp": "2024-01-15T15:17:00Z", "type": "flow_bottleneck", "node_id": "concourse_n", "capacity_utilization": 0.95}
+      ]
+    },
+    "post_match_egress": {
+      "name": "Post-Match Egress",
+      "description": "Critical scenario with all concourses at maximum capacity",
+      "graph_config": {
+        "nodes": [
+          {"id": "gate_n", "x": 20, "y": 50, "node_type": "gate", "capacity": 500, "density": 0.05, "trend": "stable"},
+          {"id": "gate_s", "x": 20, "y": 80, "node_type": "gate", "capacity": 500, "density": 0.08, "trend": "stable"},
+          {"id": "concourse_n", "x": 40, "y": 35, "node_type": "concourse", "capacity": 800, "density": 1.0, "trend": "up", "predicted_density": 0.75},
+          {"id": "concourse_s", "x": 40, "y": 65, "node_type": "concourse", "capacity": 800, "density": 1.0, "trend": "up", "predicted_density": 0.78},
+          {"id": "concourse_e", "x": 60, "y": 50, "node_type": "concourse", "capacity": 600, "density": 1.0, "trend": "up", "predicted_density": 0.70},
+          {"id": "concourse_w", "x": 25, "y": 50, "node_type": "concourse", "capacity": 700, "density": 0.95, "trend": "up", "predicted_density": 0.72},
+          {"id": "exit_w", "x": 80, "y": 30, "node_type": "exit", "capacity": 400, "density": 0.85, "trend": "up"},
+          {"id": "exit_e", "x": 80, "y": 70, "node_type": "exit", "capacity": 400, "density": 0.82, "trend": "up"},
+          {"id": "emergency_exit_1", "x": 70, "y": 20, "node_type": "exit", "capacity": 300, "density": 0.15, "trend": "stable"},
+          {"id": "emergency_exit_2", "x": 70, "y": 80, "node_type": "exit", "capacity": 300, "density": 0.12, "trend": "stable"}
+        ],
+        "edges": [
+          {"source": "concourse_n", "target": "exit_w", "capacity": 350, "flow_rate": 0.2, "is_saturated": true},
+          {"source": "concourse_s", "target": "exit_e", "capacity": 350, "flow_rate": 0.25, "is_saturated": true},
+          {"source": "concourse_e", "target": "exit_w", "capacity": 300, "flow_rate": 0.15, "is_saturated": true},
+          {"source": "concourse_e", "target": "exit_e", "capacity": 300, "flow_rate": 0.2, "is_saturated": true},
+          {"source": "concourse_w", "target": "emergency_exit_1", "capacity": 250, "flow_rate": 0.1, "is_saturated": true}
+        ]
+      },
+      "events": [
+        {"timestamp": "2024-01-15T17:00:00Z", "type": "critical_congestion", "node_id": "concourse_n", "severity": "critical"},
+        {"timestamp": "2024-01-15T17:01:00Z", "type": "critical_congestion", "node_id": "concourse_s", "severity": "critical"},
+        {"timestamp": "2024-01-15T17:02:00Z", "type": "critical_congestion", "node_id": "concourse_e", "severity": "critical"},
+        {"timestamp": "2024-01-15T17:03:00Z", "type": "egress_initiated", "node_id": "all_concourses", "phase": "post_match"}
+      ]
+    },
+    "concert_mode": {
+      "name": "Concert Mode",
+      "description": "Dynamic concert scenario with standing areas and multiple stages",
+      "graph_config": {
+        "nodes": [
+          {"id": "main_entrance", "x": 15, "y": 50, "node_type": "gate", "capacity": 800, "density": 0.65, "trend": "up"},
+          {"id": "vip_entrance", "x": 15, "y": 25, "node_type": "gate", "capacity": 200, "density": 0.35, "trend": "stable"},
+          {"id": "standing_area_a", "x": 35, "y": 40, "node_type": "sector", "capacity": 1200, "density": 0.88, "trend": "up", "predicted_density": 0.92},
+          {"id": "standing_area_b", "x": 35, "y": 60, "node_type": "sector", "capacity": 1200, "density": 0.85, "trend": "up", "predicted_density": 0.90},
+          {"id": "vip_area", "x": 45, "y": 25, "node_type": "sector", "capacity": 300, "density": 0.45, "trend": "stable"},
+          {"id": "bar_north", "x": 55, "y": 30, "node_type": "concession", "capacity": 150, "density": 0.92, "trend": "up"},
+          {"id": "bar_south", "x": 55, "y": 70, "node_type": "concession", "capacity": 150, "density": 0.89, "trend": "up"},
+          {"id": "merch_booth", "x": 65, "y": 50, "node_type": "concession", "capacity": 100, "density": 0.78, "trend": "stable"},
+          {"id": "emergency_exit_n", "x": 75, "y": 20, "node_type": "exit", "capacity": 400, "density": 0.25, "trend": "stable"},
+          {"id": "emergency_exit_s", "x": 75, "y": 80, "node_type": "exit", "capacity": 400, "density": 0.22, "trend": "stable"},
+          {"id": "main_exit", "x": 85, "y": 50, "node_type": "exit", "capacity": 600, "density": 0.18, "trend": "stable"}
+        ],
+        "edges": [
+          {"source": "main_entrance", "target": "standing_area_a", "capacity": 500, "flow_rate": 0.7},
+          {"source": "vip_entrance", "target": "vip_area", "capacity": 150, "flow_rate": 0.8},
+          {"source": "standing_area_a", "target": "bar_north", "capacity": 200, "flow_rate": 0.4},
+          {"source": "standing_area_b", "target": "bar_south", "capacity": 200, "flow_rate": 0.5},
+          {"source": "vip_area", "target": "merch_booth", "capacity": 100, "flow_rate": 0.3}
+        ]
+      },
+      "events": [
+        {"timestamp": "2024-01-15T20:00:00Z", "type": "show_start", "node_id": "main_stage", "impact": "high"},
+        {"timestamp": "2024-01-15T20:15:00Z", "type": "crowd_surge", "node_id": "standing_area_a", "intensity": 0.8},
+        {"timestamp": "2024-01-15T20:30:00Z", "type": "bar_peak", "node_id": "bar_north", "wait_time": 15}
+      ]
+    },
+    "emergency_evacuation": {
+      "name": "Emergency Evacuation",
+      "description": "Emergency scenario requiring immediate evacuation",
+      "graph_config": {
+        "nodes": [
+          {"id": "all_concourses", "x": 40, "y": 50, "node_type": "sector", "capacity": 3000, "density": 0.95, "trend": "up", "predicted_density": 0.40},
+          {"id": "emergency_exit_1", "x": 20, "y": 20, "node_type": "exit", "capacity": 500, "density": 0.75, "trend": "up"},
+          {"id": "emergency_exit_2", "x": 20, "y": 80, "node_type": "exit", "capacity": 500, "density": 0.72, "trend": "up"},
+          {"id": "emergency_exit_3", "x": 60, "y": 20, "node_type": "exit", "capacity": 500, "density": 0.68, "trend": "up"},
+          {"id": "emergency_exit_4", "x": 60, "y": 80, "node_type": "exit", "capacity": 500, "density": 0.70, "trend": "up"},
+          {"id": "assembly_point_a", "x": 85, "y": 25, "node_type": "sector", "capacity": 1000, "density": 0.30, "trend": "up"},
+          {"id": "assembly_point_b", "x": 85, "y": 75, "node_type": "sector", "capacity": 1000, "density": 0.28, "trend": "up"}
+        ],
+        "edges": [
+          {"source": "all_concourses", "target": "emergency_exit_1", "capacity": 600, "flow_rate": 0.8, "is_saturated": true},
+          {"source": "all_concourses", "target": "emergency_exit_2", "capacity": 600, "flow_rate": 0.7, "is_saturated": true},
+          {"source": "all_concourses", "target": "emergency_exit_3", "capacity": 600, "flow_rate": 0.6, "is_saturated": true},
+          {"source": "all_concourses", "target": "emergency_exit_4", "capacity": 600, "flow_rate": 0.7, "is_saturated": true},
+          {"source": "emergency_exit_1", "target": "assembly_point_a", "capacity": 800, "flow_rate": 0.9},
+          {"source": "emergency_exit_2", "target": "assembly_point_b", "capacity": 800, "flow_rate": 0.8}
+        ]
+      },
+      "events": [
+        {"timestamp": "2024-01-15T16:45:00Z", "type": "emergency_alert", "node_id": "all_venues", "severity": "critical"},
+        {"timestamp": "2024-01-15T16:46:00Z", "type": "evacuation_initiated", "node_id": "all_concourses", "protocol": "emergency"},
+        {"timestamp": "2024-01-15T16:47:00Z", "type": "first_responder_dispatch", "node_id": "all_exits", "units": 4}
+      ]
+    }
+  },
+  "scenario_rotation": {
+    "enabled": true,
+    "interval_minutes": 5,
+    "randomize": true,
+    "weights": {
+      "normal_operations": 0.3,
+      "halftime_rush": 0.25,
+      "post_match_egress": 0.2,
+      "concert_mode": 0.15,
+      "emergency_evacuation": 0.1
+    }
+  }
+}
