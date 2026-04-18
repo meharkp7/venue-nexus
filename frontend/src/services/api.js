@@ -1,4 +1,4 @@
-const BASE = '/api'
+const BASE = 'https://venue-nexus-980350937537.us-central1.run.app'
 const API_KEY = import.meta.env.VITE_API_KEY || 'venue-nexus-demo'
 
 function buildHeaders(extra = {}) {
