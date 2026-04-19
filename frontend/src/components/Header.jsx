@@ -12,7 +12,7 @@ export default function Header({ tick, phase, density, running, theme = 'dark', 
   const phaseInfo = PHASE_LABELS[phase] || { label: 'STANDBY', color: '#7a9ab0' }
 
   return (
-    <header style={styles.header}>
+    <header style={styles.header} aria-label="Application header">
       {/* Logo */}
       <div style={styles.logo}>
         <div style={styles.logoIcon}>
@@ -25,7 +25,7 @@ export default function Header({ tick, phase, density, running, theme = 'dark', 
       </div>
 
       {/* Center stats */}
-      <div style={styles.centerStats}>
+      <div style={styles.centerStats} role="status" aria-label={`Simulation tick ${tick}, density ${Math.round((density || 0) * 100)} percent, phase ${phaseInfo.label}`}>
         <Stat label="TICK" value={String(tick).padStart(4, '0')} mono />
         <div style={styles.divider} />
         <Stat label="DENSITY" value={`${Math.round((density || 0) * 100)}%`} mono
@@ -44,7 +44,7 @@ export default function Header({ tick, phase, density, running, theme = 'dark', 
         <span style={{ ...styles.liveText, color: running ? 'var(--accent-success)' : '#3d5a70' }}>
           {running ? 'LIVE' : 'PAUSED'}
         </span>
-        <button type="button" style={styles.themeToggle} onClick={onToggleTheme}>
+        <button type="button" aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} style={styles.themeToggle} onClick={onToggleTheme}>
           {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
         </button>
       </div>

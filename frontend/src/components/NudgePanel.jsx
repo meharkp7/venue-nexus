@@ -10,7 +10,7 @@ const URGENCY_COLOR = {
 
 export default function NudgePanel({ nudges = [] }) {
   return (
-    <div style={styles.wrap} className="card widget-float">
+    <section style={styles.wrap} className="card widget-float" aria-label="Attendee nudges" aria-live="polite">
       <div style={styles.header}>
         <MessageSquare size={12} color="var(--text-muted)" />
         <span style={styles.title}>ATTENDEE NUDGES</span>
@@ -19,14 +19,14 @@ export default function NudgePanel({ nudges = [] }) {
         )}
       </div>
 
-      <div style={styles.list}>
+      <div style={styles.list} role="list">
         {nudges.length === 0 ? (
           <div style={styles.empty}>No nudges queued</div>
         ) : (
           nudges.map((nudge, i) => {
             const color = URGENCY_COLOR[nudge.urgency] || 'var(--accent-primary)'
             return (
-              <div key={i} style={{ ...styles.nudge, borderLeftColor: color }} className="slide-in">
+              <div key={i} role="listitem" aria-label={`Nudge message ${nudge.message}`} style={{ ...styles.nudge, borderLeftColor: color }} className="slide-in">
                 <div style={styles.nudgeMsg}>{nudge.message}</div>
                 {nudge.incentive && (
                   <div style={styles.incentive}>
@@ -47,7 +47,7 @@ export default function NudgePanel({ nudges = [] }) {
           })
         )}
       </div>
-    </div>
+    </section>
   )
 }
 

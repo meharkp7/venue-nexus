@@ -3,17 +3,17 @@ import { Navigation } from 'lucide-react'
 
 export default function RoutePanel({ routes = [] }) {
   return (
-    <div style={styles.wrap} className="card widget-float">
+    <section style={styles.wrap} className="card widget-float" aria-label="Exit routing recommendations" aria-live="polite">
       <div style={styles.header}>
         <Navigation size={12} color="var(--text-muted)" />
         <span style={styles.title}>EXIT ROUTING</span>
       </div>
-      <div style={styles.list}>
+      <div style={styles.list} role="list">
         {routes.length === 0 ? (
           <div style={styles.empty}>No rerouting active</div>
         ) : (
           routes.slice(0, 6).map((r, i) => (
-            <div key={i} style={styles.route}>
+            <div key={i} role="listitem" aria-label={`Route from ${r.from_node} to ${r.to_node} in ${r.estimated_time_minutes} minutes`} style={styles.route}>
               <div style={styles.routeTop}>
                 <span style={styles.routeFrom}>{r.from_node}</span>
                 <span style={styles.arrow}>→</span>
@@ -38,7 +38,7 @@ export default function RoutePanel({ routes = [] }) {
           ))
         )}
       </div>
-    </div>
+    </section>
   )
 }
 

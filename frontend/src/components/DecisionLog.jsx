@@ -26,27 +26,31 @@ export default function DecisionLog() {
   }, [])
 
   return (
-    <div style={styles.wrap}>
+    <section style={styles.wrap} aria-label="Decision audit trail" aria-live="polite">
       <div style={styles.header}>
         <FileText size={12} color="var(--text-muted)" />
         <span style={styles.title}>DECISION AUDIT TRAIL</span>
         <span style={styles.badge}>{decisions.length} entries</span>
-        <button style={styles.refreshBtn} onClick={fetchDecisions}>
+        <button style={styles.refreshBtn} aria-label="Refresh decision audit trail" onClick={fetchDecisions}>
           ↻ Refresh
         </button>
       </div>
 
-      <div style={styles.list}>
+      <div style={styles.list} role="list">
         {decisions.length === 0 ? (
           <div style={styles.empty}>No decisions recorded yet</div>
         ) : (
           decisions.slice(-20).reverse().map((d, i) => {
             const isExpanded = expanded === d.id
             return (
-              <div key={d.id} style={styles.entry}
-                onClick={() => setExpanded(isExpanded ? null : d.id)}
-                className="fade-in"
-              >
+              <div key={d.id} style={styles.entry} role="listitem" className="fade-in">
+                <button
+                  type="button"
+                  style={styles.entryButton}
+                  onClick={() => setExpanded(isExpanded ? null : d.id)}
+                  aria-expanded={isExpanded}
+                  aria-label={`Decision log entry tick ${d.tick}, phase ${d.phase}`}
+                >
                 <div style={styles.entryTop}>
                   <Clock size={10} color="var(--text-muted)" />
                   <span style={styles.entryTick}>Tick {d.tick}</span>
@@ -60,6 +64,7 @@ export default function DecisionLog() {
                     : <ChevronDown size={10} color="var(--text-muted)" />
                   }
                 </div>
+                </button>
 
                 {isExpanded && (
                   <div style={styles.expandedContent} className="fade-in">
@@ -101,7 +106,7 @@ export default function DecisionLog() {
           })
         )}
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -141,6 +146,15 @@ const styles = {
     background: 'var(--bg-panel)', borderRadius: 'var(--radius)',
     border: '1px solid var(--border)', overflow: 'hidden',
     cursor: 'pointer', transition: 'all 0.15s',
+  },
+  entryButton: {
+    width: '100%',
+    background: 'transparent',
+    border: 'none',
+    padding: 0,
+    textAlign: 'left',
+    color: 'inherit',
+    cursor: 'pointer',
   },
   entryTop: {
     display: 'flex', alignItems: 'center', gap: 8,

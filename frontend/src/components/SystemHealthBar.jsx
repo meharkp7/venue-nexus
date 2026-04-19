@@ -25,9 +25,9 @@ export default function SystemHealthBar() {
 
   if (loading) {
     return (
-      <div style={styles.wrap}>
+      <section style={styles.wrap} aria-label="System health metrics" aria-live="polite">
         <div style={styles.placeholder}>Loading system metrics...</div>
-      </div>
+      </section>
     )
   }
 
@@ -47,7 +47,7 @@ export default function SystemHealthBar() {
   }
 
   return (
-    <div style={styles.wrap}>
+    <section style={styles.wrap} aria-label="System health metrics" aria-live="polite">
       <div style={styles.section}>
         <div style={styles.sectionHeader}>
           <Activity size={12} color="#FFD700" />
@@ -223,7 +223,7 @@ export default function SystemHealthBar() {
           <span>Uptime: 99.8%</span>
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 

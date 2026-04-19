@@ -25,7 +25,7 @@ export default function ActionsPanel({ actions = [], onApprove, onExecute, onOve
   const executed = actions.filter(a => a.approved || a.executed)
 
   return (
-    <div style={styles.wrap} className="card">
+    <section style={styles.wrap} className="card" aria-label="Agentic actions" aria-live="polite">
       <div style={styles.header}>
         <Shield size={12} color="var(--accent-violet)" />
         <span style={styles.title}>AGENTIC ACTIONS</span>
@@ -43,19 +43,26 @@ export default function ActionsPanel({ actions = [], onApprove, onExecute, onOve
           <span>No actions yet — start the simulation</span>
         </div>
       ) : (
-        <div style={styles.list}>
+        <div style={styles.list} role="list">
           {actions.slice(-10).reverse().map((action, i) => {
             const isExpanded = expanded === action.id
             const icon = ACTION_TYPE_ICON[action.action_type] || '⚡'
             const prioColor = PRIORITY_COLOR[action.priority] || '#7a9ab0'
 
             return (
-              <div key={action.id} style={{
+              <div key={action.id} role="listitem" style={{
                 ...styles.actionCard,
                 borderLeftColor: prioColor,
                 opacity: action.executed ? 0.6 : 1,
               }} className="fade-in">
-                <div style={styles.actionTop} onClick={() => setExpanded(isExpanded ? null : action.id)}>
+                <button
+                  type="button"
+                  style={styles.actionTopButton}
+                  onClick={() => setExpanded(isExpanded ? null : action.id)}
+                  aria-expanded={isExpanded}
+                  aria-label={`Action ${action.description}`}
+                >
+                <div style={styles.actionTop}>
                   <span style={styles.actionIcon}>{icon}</span>
                   <div style={styles.actionMeta}>
                     <div style={styles.actionDesc}>{action.description}</div>
@@ -103,6 +110,7 @@ export default function ActionsPanel({ actions = [], onApprove, onExecute, onOve
                     }
                   </div>
                 </div>
+                </button>
 
                 {isExpanded && (
                   <div style={styles.expandedContent} className="fade-in">
@@ -137,7 +145,7 @@ export default function ActionsPanel({ actions = [], onApprove, onExecute, onOve
           })}
         </div>
       )}
-    </div>
+    </section>
   )
 }
 
@@ -181,6 +189,15 @@ const styles = {
   actionTop: {
     display: 'flex', alignItems: 'flex-start', gap: 10,
     padding: '10px 12px', cursor: 'pointer',
+  },
+  actionTopButton: {
+    width: '100%',
+    background: 'transparent',
+    border: 'none',
+    padding: 0,
+    textAlign: 'left',
+    color: 'inherit',
+    cursor: 'pointer',
   },
   actionIcon: { fontSize: 16, lineHeight: 1, flexShrink: 0, marginTop: 2 },
   actionMeta: { flex: 1, display: 'flex', flexDirection: 'column', gap: 3 },

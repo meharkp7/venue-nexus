@@ -68,7 +68,7 @@ export default function AgentConsole() {
   const currentSummary = strategy?.data?.summary || 'Generate a strategy to see the live control brief.'
 
   return (
-    <div style={styles.wrap}>
+    <section style={styles.wrap} aria-label="Agent console" aria-live="polite">
       <div style={styles.header}>
         <Cpu size={12} color="var(--accent-primary)" />
         <span style={styles.title}>AGENT CONSOLE</span>
@@ -102,7 +102,7 @@ export default function AgentConsole() {
           </div>
         )}
 
-        {error && <div style={styles.error}>{error}</div>}
+        {error && <div style={styles.error} role="alert">{error}</div>}
 
         {strategy && !loading && (
           <div style={styles.strategyOutput} className="fade-in">
@@ -144,7 +144,7 @@ export default function AgentConsole() {
                     </span>
                   </div>
                 </div>
-                <button style={styles.approveCta} onClick={handleApproveMappedAction}>
+                <button style={styles.approveCta} aria-label="Approve mapped agent action" onClick={handleApproveMappedAction}>
                   <CheckCircle2 size={14} />
                   Approve Action
                 </button>
@@ -183,7 +183,7 @@ export default function AgentConsole() {
 
       <div style={styles.quickWrap}>
         {QUICK_QUERIES.map((q, i) => (
-          <button key={i} style={styles.quickBtn} onClick={() => query(q)}>
+          <button key={i} style={styles.quickBtn} aria-label={`Ask agent: ${q}`} onClick={() => query(q)}>
             {q}
           </button>
         ))}
@@ -193,18 +193,19 @@ export default function AgentConsole() {
         <input
           style={styles.input}
           placeholder="Ask the agent... (e.g. 'Predict the next hotspot')"
+          aria-label="Ask the agent a question"
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKey}
         />
-        <button style={styles.sendBtn} onClick={handleSend} disabled={loading}>
+        <button style={styles.sendBtn} aria-label="Send agent question" onClick={handleSend} disabled={loading}>
           <Send size={13} color={loading ? 'var(--text-muted)' : 'var(--accent-primary)'} />
         </button>
-        <button style={styles.generateBtn} onClick={() => query(null)} disabled={loading}>
+        <button style={styles.generateBtn} aria-label="Generate proactive strategy" onClick={() => query(null)} disabled={loading}>
           Generate Strategy
         </button>
       </div>
-    </div>
+    </section>
   )
 }
 

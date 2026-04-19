@@ -34,7 +34,7 @@ export default function DensityChart({ density, phase, tick }) {
   }
 
   return (
-    <div style={styles.wrap} className="card widget-float">
+    <section style={styles.wrap} className="card widget-float" aria-label="Overall density trend chart" aria-live="polite">
       <div style={styles.header}>
         <TrendingUp size={12} color="var(--text-muted)" />
         <span style={styles.title}>OVERALL DENSITY TREND</span>
@@ -42,6 +42,7 @@ export default function DensityChart({ density, phase, tick }) {
           {density != null ? `${Math.round(density * 100)}%` : '—'}
         </span>
       </div>
+      <div role="img" aria-label={`Overall density trend. Current density ${density != null ? Math.round(density * 100) : 0} percent. Phase ${phase || 'unknown'}.`}>
       <ResponsiveContainer width="100%" height={130}>
         <LineChart data={history} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
           <XAxis dataKey="tick" hide />
@@ -57,11 +58,12 @@ export default function DensityChart({ density, phase, tick }) {
           />
         </LineChart>
       </ResponsiveContainer>
+      </div>
       <div style={styles.refLabels}>
         <span style={{ color: 'var(--accent-danger)' }}>— 80% critical</span>
         <span style={{ color: 'var(--accent-warning)' }}>— 50% warning</span>
       </div>
-    </div>
+    </section>
   )
 }
 

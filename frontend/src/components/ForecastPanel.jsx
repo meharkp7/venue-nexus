@@ -15,7 +15,7 @@ export default function ForecastPanel({ forecasts = [] }) {
     .slice(0, 8)
 
   return (
-    <div style={styles.wrap} className="card">
+    <section style={styles.wrap} className="card" aria-label="Short term forecast" aria-live="polite">
       <div style={styles.header}>
         <Eye size={12} color="var(--text-muted)" />
         <span style={styles.title}>SHORT-TERM FORECAST</span>
@@ -32,7 +32,7 @@ export default function ForecastPanel({ forecasts = [] }) {
         <span style={styles.colLabel}>UNC</span>
       </div>
 
-      <div style={styles.list}>
+      <div style={styles.list} role="list">
         {interesting.length === 0 ? (
           <div style={styles.empty}>No significant forecasts</div>
         ) : (
@@ -40,7 +40,7 @@ export default function ForecastPanel({ forecasts = [] }) {
             const trend = TREND_ICON[f.trend] || TREND_ICON.stable
             const { Icon } = trend
             return (
-              <div key={i} style={styles.row} className="fade-in">
+              <div key={i} role="listitem" aria-label={`${f.node_name}, current density ${Math.round(f.current_density * 100)} percent, forecast 15 minutes ${Math.round(f.forecast_15min * 100)} percent`} style={styles.row} className="fade-in">
                 <div style={styles.nameCell}>
                   <Icon size={10} color={trend.color} />
                   <span style={styles.name}>{f.node_name.split(' ').slice(0, 2).join(' ')}</span>
@@ -68,7 +68,7 @@ export default function ForecastPanel({ forecasts = [] }) {
           })
         )}
       </div>
-    </div>
+    </section>
   )
 }
 

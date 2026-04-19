@@ -50,7 +50,7 @@ export default function KpiDashboard({ kpis }) {
   ]
 
   return (
-    <div style={styles.wrap}>
+    <section style={styles.wrap} aria-label="Business KPI dashboard" aria-live="polite">
       <div style={styles.header}>
         <BarChart3 size={12} color="var(--text-muted)" />
         <span style={styles.title}>BUSINESS KPIs — REAL-TIME</span>
@@ -59,11 +59,11 @@ export default function KpiDashboard({ kpis }) {
         </span>
       </div>
 
-      <div style={styles.grid}>
+      <div style={styles.grid} role="list">
         {stats.map((stat, i) => {
           const { Icon } = stat
           return (
-            <div key={i} style={styles.statCard} className="fade-in">
+            <div key={i} role="listitem" aria-label={`${stat.label} ${stat.value}${stat.unit ? ` ${stat.unit}` : ''}`} style={styles.statCard} className="fade-in">
               <div style={styles.statHeader}>
                 <Icon size={10} color={stat.color} />
                 <span style={styles.statLabel}>{stat.label}</span>
@@ -97,7 +97,7 @@ export default function KpiDashboard({ kpis }) {
           }} />
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 

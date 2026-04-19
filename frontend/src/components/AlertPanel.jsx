@@ -34,7 +34,7 @@ const LEVEL_CONFIG = {
 
 export default function AlertPanel({ alerts = [] }) {
   return (
-    <div style={styles.wrap} className="card widget-float">
+    <section style={styles.wrap} className="card widget-float" aria-label="Congestion alerts" aria-live="polite">
       <div style={styles.header}>
         <Bell size={12} color="var(--text-muted)" />
         <span style={styles.title}>CONGESTION ALERTS</span>
@@ -46,7 +46,7 @@ export default function AlertPanel({ alerts = [] }) {
         )}
       </div>
 
-      <div style={styles.list}>
+      <div style={styles.list} role="list">
         {alerts.length === 0 ? (
           <div style={styles.empty}>
             <div style={styles.emptyDot} />
@@ -57,7 +57,7 @@ export default function AlertPanel({ alerts = [] }) {
             const cfg = LEVEL_CONFIG[alert.alert_level] || LEVEL_CONFIG.low
             const { Icon } = cfg
             return (
-              <div key={i} style={{ ...styles.alertItem, background: cfg.bg, borderColor: cfg.border }}
+              <div key={i} role="listitem" aria-label={`${alert.node_name} alert level ${alert.alert_level}, density ${Math.round(alert.density * 100)} percent`} style={{ ...styles.alertItem, background: cfg.bg, borderColor: cfg.border }}
                 className="fade-in">
                 <div style={styles.alertTop}>
                   <Icon size={12} color={cfg.color} />
@@ -84,7 +84,7 @@ export default function AlertPanel({ alerts = [] }) {
           })
         )}
       </div>
-    </div>
+    </section>
   )
 }
 

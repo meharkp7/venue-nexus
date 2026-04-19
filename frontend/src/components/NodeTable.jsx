@@ -16,14 +16,16 @@ export default function NodeTable({ nodes = [] }) {
   }
 
   const Th = ({ label, field }) => (
-    <th style={styles.th} onClick={() => toggleSort(field)}>
-      {label}
-      {sort.key === field && <span style={{ color: 'var(--accent-primary)' }}> {sort.dir === -1 ? '↓' : '↑'}</span>}
+    <th scope="col" style={styles.th}>
+      <button type="button" style={styles.thButton} onClick={() => toggleSort(field)} aria-label={`Sort by ${label}`}>
+        {label}
+        {sort.key === field && <span style={{ color: 'var(--accent-primary)' }}> {sort.dir === -1 ? '↓' : '↑'}</span>}
+      </button>
     </th>
   )
 
   return (
-    <div style={styles.wrap} className="card widget-float">
+    <section style={styles.wrap} className="card widget-float" aria-label="Zone status table">
       <div style={styles.header}>
         <Table size={12} color="var(--text-muted)" />
         <span style={styles.title}>ZONE STATUS TABLE</span>
@@ -80,7 +82,7 @@ export default function NodeTable({ nodes = [] }) {
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -99,6 +101,14 @@ const styles = {
     textAlign: 'left', padding: '6px 10px', fontSize: 10,
     color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.1em',
     cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap',
+  },
+  thButton: {
+    background: 'transparent',
+    border: 'none',
+    padding: 0,
+    color: 'inherit',
+    font: 'inherit',
+    cursor: 'pointer',
   },
   tr: { borderBottom: '1px solid var(--border)', transition: 'background 0.15s' },
   td: { padding: '8px 10px', fontSize: 12, color: 'var(--text-primary)', whiteSpace: 'nowrap' },
