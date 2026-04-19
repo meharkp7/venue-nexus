@@ -249,20 +249,20 @@ const MICRO_ZONE_TEMPLATES = {
 }
 
 const STATIC_FEATURES = [
-  { id: 'suite_row_nw', label: 'Suite Row NW', type: 'suite', level: 'bowl', polygon: '300,188 388,188 380,214 294,214', center: { x: 342, y: 202 } },
-  { id: 'suite_row_ne', label: 'Suite Row NE', type: 'suite', level: 'bowl', polygon: '612,188 700,188 708,214 620,214', center: { x: 658, y: 202 } },
-  { id: 'club_north', label: 'North Club', type: 'club', level: 'concourse', polygon: '430,92 570,92 570,118 430,118', center: { x: 500, y: 105 } },
-  { id: 'club_south', label: 'South Club', type: 'club', level: 'concourse', polygon: '430,582 570,582 570,608 430,608', center: { x: 500, y: 595 } },
-  { id: 'merch_west', label: 'Merch Store', type: 'merch', level: 'concourse', polygon: '118,292 160,292 160,336 118,336', center: { x: 139, y: 314 } },
-  { id: 'merch_east', label: 'Merch Kiosk', type: 'merch', level: 'concourse', polygon: '840,364 882,364 882,406 840,406', center: { x: 861, y: 386 } },
-  { id: 'restroom_nw', label: 'Restrooms NW', type: 'restroom', level: 'concourse', polygon: '320,94 362,94 362,122 320,122', center: { x: 341, y: 108 } },
-  { id: 'restroom_ne', label: 'Restrooms NE', type: 'restroom', level: 'concourse', polygon: '638,94 680,94 680,122 638,122', center: { x: 659, y: 108 } },
-  { id: 'restroom_sw', label: 'Restrooms SW', type: 'restroom', level: 'concourse', polygon: '320,578 362,578 362,606 320,606', center: { x: 341, y: 592 } },
-  { id: 'restroom_se', label: 'Restrooms SE', type: 'restroom', level: 'concourse', polygon: '638,578 680,578 680,606 638,606', center: { x: 659, y: 592 } },
-  { id: 'first_aid_w', label: 'First Aid West', type: 'medical', level: 'concourse', polygon: '180,430 226,430 226,468 180,468', center: { x: 203, y: 449 } },
-  { id: 'first_aid_e', label: 'First Aid East', type: 'medical', level: 'concourse', polygon: '774,232 820,232 820,270 774,270', center: { x: 797, y: 251 } },
-  { id: 'hospitality_n', label: 'Hospitality Lounge', type: 'hospitality', level: 'bowl', polygon: '434,220 566,220 566,250 434,250', center: { x: 500, y: 235 } },
-  { id: 'broadcast_s', label: 'Broadcast / Ops', type: 'hospitality', level: 'bowl', polygon: '434,450 566,450 566,480 434,480', center: { x: 500, y: 465 } },
+  { id: 'suite_row_nw', label: 'Suite Row NW', shortLabel: 'SUITES NW', type: 'suite', level: 'bowl', polygon: '300,188 388,188 380,214 294,214', center: { x: 342, y: 202 }, labelPos: { x: 352, y: 182 } },
+  { id: 'suite_row_ne', label: 'Suite Row NE', shortLabel: 'SUITES NE', type: 'suite', level: 'bowl', polygon: '612,188 700,188 708,214 620,214', center: { x: 658, y: 202 }, labelPos: { x: 648, y: 182 } },
+  { id: 'club_north', label: 'North Club', shortLabel: 'CLUB N', type: 'club', level: 'concourse', polygon: '430,92 570,92 570,118 430,118', center: { x: 500, y: 105 }, labelPos: { x: 500, y: 82 } },
+  { id: 'club_south', label: 'South Club', shortLabel: 'CLUB S', type: 'club', level: 'concourse', polygon: '430,582 570,582 570,608 430,608', center: { x: 500, y: 595 }, labelPos: { x: 500, y: 632 } },
+  { id: 'merch_west', label: 'Merch Store', shortLabel: 'MERCH W', type: 'merch', level: 'concourse', polygon: '118,292 160,292 160,336 118,336', center: { x: 139, y: 314 }, labelPos: { x: 92, y: 314 } },
+  { id: 'merch_east', label: 'Merch Kiosk', shortLabel: 'MERCH E', type: 'merch', level: 'concourse', polygon: '840,364 882,364 882,406 840,406', center: { x: 861, y: 386 }, labelPos: { x: 908, y: 386 } },
+  { id: 'restroom_nw', label: 'Restrooms NW', shortLabel: 'WC NW', type: 'restroom', level: 'concourse', polygon: '320,94 362,94 362,122 320,122', center: { x: 341, y: 108 }, labelPos: { x: 314, y: 82 } },
+  { id: 'restroom_ne', label: 'Restrooms NE', shortLabel: 'WC NE', type: 'restroom', level: 'concourse', polygon: '638,94 680,94 680,122 638,122', center: { x: 659, y: 108 }, labelPos: { x: 686, y: 82 } },
+  { id: 'restroom_sw', label: 'Restrooms SW', shortLabel: 'WC SW', type: 'restroom', level: 'concourse', polygon: '320,578 362,578 362,606 320,606', center: { x: 341, y: 592 }, labelPos: { x: 314, y: 632 } },
+  { id: 'restroom_se', label: 'Restrooms SE', shortLabel: 'WC SE', type: 'restroom', level: 'concourse', polygon: '638,578 680,578 680,606 638,606', center: { x: 659, y: 592 }, labelPos: { x: 686, y: 632 } },
+  { id: 'first_aid_w', label: 'First Aid West', shortLabel: 'MED W', type: 'medical', level: 'concourse', polygon: '180,430 226,430 226,468 180,468', center: { x: 203, y: 449 }, labelPos: { x: 168, y: 486 } },
+  { id: 'first_aid_e', label: 'First Aid East', shortLabel: 'MED E', type: 'medical', level: 'concourse', polygon: '774,232 820,232 820,270 774,270', center: { x: 797, y: 251 }, labelPos: { x: 832, y: 214 } },
+  { id: 'hospitality_n', label: 'Hospitality Lounge', shortLabel: 'LOUNGE', type: 'hospitality', level: 'bowl', polygon: '434,220 566,220 566,250 434,250', center: { x: 500, y: 235 }, labelPos: { x: 500, y: 204 } },
+  { id: 'broadcast_s', label: 'Broadcast / Ops', shortLabel: 'OPS', type: 'hospitality', level: 'bowl', polygon: '434,450 566,450 566,480 434,480', center: { x: 500, y: 465 }, labelPos: { x: 500, y: 507 } },
 ]
 
 const CIRCULATION_FEATURES = [
@@ -310,7 +310,7 @@ function inferZone(node) {
     edgeGlow: predictedDensity >= 0.8 || node.status === 'red',
     color: getStatusColor(node.status),
     level: base.zoneType === 'section' ? 'bowl' : base.zoneType === 'concourse' || base.zoneType === 'concession' ? 'concourse' : 'all',
-    shortLabel: base.label || node.name || node.id,
+    shortLabel: abbreviateZoneLabel(base.label || node.name || node.id, base.zoneType),
   }
 }
 
@@ -369,6 +369,26 @@ function deriveMicroZones(zones) {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value))
+}
+
+function abbreviateZoneLabel(label, zoneType) {
+  if (!label) return 'ZONE'
+  if (zoneType === 'section') {
+    const match = label.match(/(\d{3}[A-Z]?)/i)
+    return match ? match[1].toUpperCase() : label
+  }
+  if (zoneType === 'concourse') {
+    return label
+      .replace('Concourse', 'CONC')
+      .replace('North', 'N')
+      .replace('South', 'S')
+      .replace('East', 'E')
+      .replace('West', 'W')
+      .toUpperCase()
+  }
+  if (zoneType === 'concession') return label.replace('Concession ', 'F&B ').toUpperCase()
+  if (zoneType === 'gate' || zoneType === 'exit') return label.toUpperCase()
+  return label.length > 12 ? label.split(' ').slice(0, 2).join(' ').toUpperCase() : label.toUpperCase()
 }
 
 function pathForEdge(source, target) {
