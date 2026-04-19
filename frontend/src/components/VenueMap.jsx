@@ -16,6 +16,7 @@ import {
   Sparkles,
   Waves,
   X,
+  Search,
 } from 'lucide-react'
 import { buildVenueFloorplan } from '../utils/venueFloorplan'
 
@@ -64,6 +65,7 @@ export default function VenueMap({ nodes = [], edges = [] }) {
   const [hoveredZoneId, setHoveredZoneId] = useState(null)
   const [activeLevel, setActiveLevel] = useState('all')
   const [activePhase, setActivePhase] = useState('ingress')
+  const [searchQuery, setSearchQuery] = useState('')
   const [viewport, setViewport] = useState({ scale: 1, x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
   const dragRef = useRef(null)
@@ -130,10 +132,52 @@ export default function VenueMap({ nodes = [], edges = [] }) {
     .filter(sensor => sensor.zoneId === selectedZone?.id || sensor.zoneId === selectedZone?.parentId)
     .slice(0, 3)
   const inspectorPosition = selectedZone ? getInspectorPosition(selectedZone.center) : null
+  const minimapViewport = getMinimapViewport(viewport)
+  const searchableItems = useMemo(() => {
+    const zoneItems = zones
+      .filter(zone => !zone.isVirtual)
+      .map(zone => ({
+        id: zone.id,
+        label: zone.label,
+        shortLabel: zone.shortLabel,
+        kind: zone.zoneType || 'zone',
+        target: zone,
+      }))
+    const amenityItems = amenities.map(feature => ({
+      id: feature.id,
+      label: feature.label,
+      shortLabel: feature.shortLabel || feature.label,
+      kind: feature.type,
+      target: feature,
+      isAmenity: true,
+    }))
+    return [...zoneItems, ...amenityItems]
+  }, [zones, amenities])
+  const searchResults = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    if (!query) return searchableItems.slice(0, 6)
+    return searchableItems
+      .filter(item =>
+        item.label.toLowerCase().includes(query)
+        || item.shortLabel?.toLowerCase().includes(query)
+        || item.id.toLowerCase().includes(query),
+      )
+      .slice(0, 8)
+  }, [searchQuery, searchableItems])
+  const breadcrumbs = useMemo(() => {
+    if (!selectedZone) return ['Venue', PHASE_PRESETS[activePhase].label, activeLevel === 'all' ? 'All Layers' : activeLevel === 'bowl' ? 'Seating Bowl' : 'Concourse']
+    const levelLabel = selectedZone.level === 'bowl' ? 'Seating Bowl' : selectedZone.level === 'concourse' ? 'Concourse' : 'Venue'
+    return ['Venue', levelLabel, selectedZone.shortLabel || selectedZone.label, selectedZone.label]
+  }, [selectedZone, activeLevel, activePhase])
 
   useEffect(() => {
     setViewport(prev => ({ ...prev, scale: 1, x: 0, y: 0 }))
   }, [activeLevel])
+
+  useEffect(() => {
+    if (!selectedZone) return
+    setViewport(getViewportForZone(selectedZone))
+  }, [selectedZoneId])
 
   const handleWheel = (event) => {
     event.preventDefault()
@@ -161,6 +205,24 @@ export default function VenueMap({ nodes = [], edges = [] }) {
   const stopDragging = () => {
     dragRef.current = null
     setDragging(false)
+  }
+
+  const handleMinimapJump = (event) => {
+    const bounds = event.currentTarget.getBoundingClientRect()
+    const x = ((event.clientX - bounds.left) / bounds.width) * 1000
+    const y = ((event.clientY - bounds.top) / bounds.height) * 700
+    setViewport(centerViewportOnPoint(x, y, Math.max(viewport.scale, 1.45)))
+  }
+
+  const jumpToItem = (item) => {
+    if (item.isAmenity) {
+      setViewport(centerViewportOnPoint(item.target.center.x, item.target.center.y, 1.85))
+      setSearchQuery('')
+      return
+    }
+    setSelectedZoneId(item.id)
+    setViewport(getViewportForZone(item.target))
+    setSearchQuery('')
   }
 
   return (
@@ -217,6 +279,43 @@ export default function VenueMap({ nodes = [], edges = [] }) {
           <div style={styles.hudSubtle}>{phasePreset.subtitle}</div>
         </div>
 
+        <div style={styles.searchLayer} data-overlay-ui="true">
+          <div style={styles.breadcrumbs}>
+            {breadcrumbs.map((crumb, index) => (
+              <span key={`${crumb}-${index}`} style={styles.breadcrumbItem}>
+                {index > 0 && <span style={styles.breadcrumbDivider}>/</span>}
+                <span>{crumb}</span>
+              </span>
+            ))}
+          </div>
+
+          <div style={styles.searchBox}>
+            <Search size={14} color="var(--text-muted)" />
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Jump to 101A, East Club Walk, Gate C..."
+              style={styles.searchInput}
+            />
+          </div>
+
+          {(searchQuery.trim() || searchResults.length > 0) && (
+            <div style={styles.searchResults}>
+              {searchResults.map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  style={styles.searchResultButton}
+                  onClick={() => jumpToItem(item)}
+                >
+                  <span style={styles.searchResultMain}>{item.shortLabel || item.label}</span>
+                  <span style={styles.searchResultMeta}>{item.label} · {item.kind}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div style={styles.zoomControls} data-overlay-ui="true">
           <button type="button" style={styles.iconButton} onClick={() => setViewport(prev => ({ ...prev, scale: clamp(prev.scale + 0.2, MIN_SCALE, MAX_SCALE) }))}>
             <Plus size={14} />
@@ -228,6 +327,61 @@ export default function VenueMap({ nodes = [], edges = [] }) {
             <Move size={14} />
           </button>
           <div style={styles.zoomReadout}>{Math.round(viewport.scale * 100)}%</div>
+        </div>
+
+        <div style={styles.minimapCard} data-overlay-ui="true">
+          <div style={styles.minimapHeader}>
+            <span style={styles.minimapTitle}>Minimap</span>
+            <span style={styles.minimapHint}>Click to jump</span>
+          </div>
+          <svg
+            viewBox="0 0 1000 700"
+            style={styles.minimapSvg}
+            onClick={handleMinimapJump}
+          >
+            <rect x="24" y="24" width="952" height="652" rx="34" fill="rgba(9, 9, 8, 0.84)" stroke="rgba(246, 222, 170, 0.08)" />
+            <ellipse cx="500" cy="350" rx="298" ry="212" fill="rgba(18, 18, 16, 0.84)" stroke="rgba(241, 205, 122, 0.12)" strokeWidth="2" />
+            {visibleZones.map(zone => (
+              <polygon
+                key={zone.id}
+                points={zone.polygon}
+                fill={fillForDensity(zone.density)}
+                opacity={zone.id === selectedZone?.id ? 0.95 : 0.5}
+                stroke={zone.id === selectedZone?.id ? 'rgba(255, 244, 220, 0.82)' : 'none'}
+                strokeWidth={zone.id === selectedZone?.id ? 4 : 0}
+              />
+            ))}
+            <rect
+              x={minimapViewport.x}
+              y={minimapViewport.y}
+              width={minimapViewport.width}
+              height={minimapViewport.height}
+              rx="14"
+              fill="rgba(255,255,255,0.04)"
+              stroke="rgba(245, 223, 173, 0.72)"
+              strokeWidth="8"
+            />
+          </svg>
+          <div style={styles.snapList}>
+            {visibleZones
+              .filter(zone => !zone.isVirtual)
+              .sort((a, b) => (b.predictedDensity || 0) - (a.predictedDensity || 0))
+              .slice(0, 4)
+              .map(zone => (
+                <button
+                  key={zone.id}
+                  type="button"
+                  style={zone.id === selectedZone?.id ? styles.snapButtonActive : styles.snapButton}
+                  onClick={() => {
+                    setSelectedZoneId(zone.id)
+                    setViewport(getViewportForZone(zone))
+                  }}
+                >
+                  <span>{zone.shortLabel || zone.label}</span>
+                  <span style={styles.snapDensity}>{Math.round(zone.density * 100)}%</span>
+                </button>
+              ))}
+          </div>
         </div>
 
         <div
@@ -474,6 +628,14 @@ export default function VenueMap({ nodes = [], edges = [] }) {
               <div style={styles.recommendationText}>{selectedZone.recommendedAction || 'Monitor adjacent corridors and keep operator review active.'}</div>
             </div>
 
+            <button
+              type="button"
+              style={styles.snapInspectorButton}
+              onClick={() => setViewport(getViewportForZone(selectedZone))}
+            >
+              Snap Camera To Zone
+            </button>
+
             <div style={styles.sidebarEyebrow}>Camera / Sensor Cards</div>
             {featuredSensors.length ? featuredSensors.map(sensor => (
               <div key={sensor.id} style={styles.feedCard}>
@@ -593,6 +755,34 @@ function getInspectorPosition(center) {
   return { left, top }
 }
 
+function centerViewportOnPoint(x, y, scale) {
+  const centeredX = 500 - (x * scale)
+  const centeredY = 350 - (y * scale)
+  return {
+    scale,
+    x: clamp(centeredX, -1800, 1800),
+    y: clamp(centeredY, -1400, 1400),
+  }
+}
+
+function getViewportForZone(zone) {
+  const scale = zone.isVirtual ? 2.15 : zone.zoneType === 'section' ? 1.9 : zone.zoneType === 'concourse' ? 1.65 : 1.5
+  return centerViewportOnPoint(zone.center.x, zone.center.y, scale)
+}
+
+function getMinimapViewport(viewport) {
+  const visibleWidth = 1000 / viewport.scale
+  const visibleHeight = 700 / viewport.scale
+  const x = clamp((-viewport.x / viewport.scale), 0, 1000 - visibleWidth)
+  const y = clamp((-viewport.y / viewport.scale), 0, 700 - visibleHeight)
+  return {
+    x,
+    y,
+    width: visibleWidth,
+    height: visibleHeight,
+  }
+}
+
 if (typeof document !== 'undefined' && !document.getElementById('venue-floorplan-style')) {
   const style = document.createElement('style')
   style.id = 'venue-floorplan-style'
@@ -646,6 +836,88 @@ const styles = {
     gridTemplateColumns: 'minmax(0, 0.85fr) minmax(0, 1.15fr)',
     gap: '12px',
     alignItems: 'start',
+  },
+  searchLayer: {
+    position: 'absolute',
+    top: 18,
+    left: 330,
+    zIndex: 3,
+    width: 340,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  breadcrumbs: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px',
+    padding: '10px 14px',
+    borderRadius: '14px',
+    background: 'rgba(8, 8, 8, 0.72)',
+    border: '1px solid rgba(241, 205, 122, 0.14)',
+    backdropFilter: 'blur(14px)',
+  },
+  breadcrumbItem: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    color: 'var(--text-secondary)',
+    fontSize: 11,
+    fontWeight: 700,
+  },
+  breadcrumbDivider: {
+    color: 'var(--text-muted)',
+  },
+  searchBox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '12px 14px',
+    borderRadius: '16px',
+    background: 'rgba(8, 8, 8, 0.82)',
+    border: '1px solid rgba(241, 205, 122, 0.14)',
+    backdropFilter: 'blur(14px)',
+  },
+  searchInput: {
+    flex: 1,
+    border: 'none',
+    outline: 'none',
+    background: 'transparent',
+    color: 'var(--text-primary)',
+    fontSize: 12,
+    fontFamily: 'var(--font-body)',
+  },
+  searchResults: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    padding: '10px',
+    borderRadius: '16px',
+    background: 'rgba(8, 8, 8, 0.86)',
+    border: '1px solid rgba(241, 205, 122, 0.14)',
+    backdropFilter: 'blur(14px)',
+    maxHeight: 240,
+    overflowY: 'auto',
+  },
+  searchResultButton: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '2px',
+    padding: '10px 12px',
+    borderRadius: '12px',
+    border: '1px solid rgba(241, 205, 122, 0.08)',
+    background: 'rgba(255,255,255,0.03)',
+    color: 'var(--text-primary)',
+    cursor: 'pointer',
+  },
+  searchResultMain: {
+    fontSize: 12,
+    fontWeight: 800,
+  },
+  searchResultMeta: {
+    fontSize: 10,
+    color: 'var(--text-muted)',
   },
   levelTabs: {
     display: 'flex',
@@ -770,6 +1042,83 @@ const styles = {
     fontFamily: 'var(--font-mono)',
     fontSize: 11,
     fontWeight: 700,
+  },
+  minimapCard: {
+    position: 'absolute',
+    right: 18,
+    bottom: 18,
+    zIndex: 3,
+    width: 220,
+    padding: '12px',
+    borderRadius: '18px',
+    background: 'rgba(8, 8, 8, 0.76)',
+    border: '1px solid rgba(241, 205, 122, 0.14)',
+    backdropFilter: 'blur(14px)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  minimapHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '8px',
+    alignItems: 'center',
+  },
+  minimapTitle: {
+    fontSize: 11,
+    fontWeight: 800,
+    color: 'var(--text-primary)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.12em',
+  },
+  minimapHint: {
+    fontSize: 10,
+    color: 'var(--text-muted)',
+  },
+  minimapSvg: {
+    width: '100%',
+    height: 142,
+    borderRadius: '12px',
+    background: 'rgba(255,255,255,0.02)',
+    cursor: 'pointer',
+  },
+  snapList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  snapButton: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '8px',
+    alignItems: 'center',
+    border: '1px solid rgba(241, 205, 122, 0.12)',
+    background: 'rgba(255,255,255,0.03)',
+    color: 'var(--text-secondary)',
+    borderRadius: '10px',
+    padding: '8px 10px',
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  snapButtonActive: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '8px',
+    alignItems: 'center',
+    border: '1px solid rgba(241, 205, 122, 0.28)',
+    background: 'rgba(241, 205, 122, 0.1)',
+    color: 'var(--text-primary)',
+    borderRadius: '10px',
+    padding: '8px 10px',
+    fontSize: 11,
+    fontWeight: 800,
+    cursor: 'pointer',
+  },
+  snapDensity: {
+    fontFamily: 'var(--font-mono)',
+    color: 'var(--accent-primary)',
+    fontSize: 10,
   },
   svgShell: {
     overflow: 'hidden',
@@ -1040,6 +1389,18 @@ const styles = {
     color: 'var(--text-secondary)',
     fontSize: 12,
     lineHeight: 1.6,
+  },
+  snapInspectorButton: {
+    border: '1px solid rgba(241, 205, 122, 0.2)',
+    background: 'rgba(241, 205, 122, 0.08)',
+    color: 'var(--accent-primary)',
+    borderRadius: '12px',
+    padding: '10px 12px',
+    cursor: 'pointer',
+    fontSize: 11,
+    fontWeight: 800,
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
   },
   feedCard: {
     display: 'flex',
