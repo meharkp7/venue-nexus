@@ -372,11 +372,11 @@ export default function App() {
     }
 
     return (
-      <div style={styles.pageGrid}>
-        <div style={styles.pageColumnWide}>
+      <div style={styles.overviewStack}>
+        <div style={styles.mapHero}>
           <VenueMap nodes={nodes} edges={edges} />
         </div>
-        <div style={styles.pageColumn}>
+        <div style={styles.overviewSupportGrid}>
           <SimControls
             running={running} loading={loading} tick={tick}
             phase={phase}
@@ -777,6 +777,20 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: '1.2fr 0.8fr',
     gap: '20px',
+    alignItems: 'start',
+  },
+  overviewStack: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '18px',
+  },
+  mapHero: {
+    width: '100%',
+  },
+  overviewSupportGrid: {
+    display: 'grid',
+    gridTemplateColumns: '0.95fr 1.05fr',
+    gap: '18px',
     alignItems: 'start',
   },
   pageColumn: {

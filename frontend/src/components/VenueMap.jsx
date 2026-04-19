@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { Camera, ChevronRight, Radar, Waves, Activity } from 'lucide-react'
+import { Camera, ChevronRight, Radar, Waves, Activity, Building2, HeartPulse, ShoppingBag, Landmark, GitBranchPlus } from 'lucide-react'
 import { buildVenueFloorplan } from '../utils/venueFloorplan'
 
 const STATUS_COLORS = {
@@ -11,16 +11,48 @@ const STATUS_COLORS = {
 export default function VenueMap({ nodes = [], edges = [] }) {
   const [selectedZoneId, setSelectedZoneId] = useState(null)
   const [hoveredSensorId, setHoveredSensorId] = useState(null)
-  const { zones, corridors, sensors } = useMemo(() => buildVenueFloorplan(nodes, edges), [nodes, edges])
-  const selectedZone = zones.find(zone => zone.id === selectedZoneId) || [...zones].sort((a, b) => (b.predictedDensity || 0) - (a.predictedDensity || 0))[0] || null
-  const hoveredSensor = sensors.find(sensor => sensor.id === hoveredSensorId) || null
+  const [activeLevel, setActiveLevel] = useState('all')
+  const { zones, corridors, sensors, amenities, circulation } = useMemo(() => buildVenueFloorplan(nodes, edges), [nodes, edges])
+  const visibleZones = useMemo(
+    () => zones.filter(zone => activeLevel === 'all' || zone.level === activeLevel || zone.level === 'all'),
+    [zones, activeLevel],
+  )
+  const zoneLookup = useMemo(() => Object.fromEntries(zones.map(zone => [zone.id, zone])), [zones])
+  const visibleCorridors = useMemo(
+    () => corridors.filter(corridor => {
+      if (activeLevel === 'all') return true
+      const source = zoneLookup[corridor.source]
+      const target = zoneLookup[corridor.target]
+      return [source?.level, target?.level].includes(activeLevel)
+    }),
+    [corridors, activeLevel, zoneLookup],
+  )
+  const visibleAmenities = useMemo(
+    () => amenities.filter(feature => activeLevel === 'all' || feature.level === activeLevel || feature.level === 'all'),
+    [amenities, activeLevel],
+  )
+  const visibleCirculation = useMemo(
+    () => circulation.filter(feature => activeLevel === 'all' || feature.level === activeLevel || feature.level === 'all'),
+    [circulation, activeLevel],
+  )
+  const visibleSensors = useMemo(
+    () => sensors.filter(sensor => {
+      const zone = zoneLookup[sensor.zoneId]
+      return activeLevel === 'all' || zone?.level === activeLevel || zone?.level === 'all'
+    }),
+    [sensors, activeLevel, zoneLookup],
+  )
+  const selectedZone = visibleZones.find(zone => zone.id === selectedZoneId)
+    || [...visibleZones].sort((a, b) => (b.predictedDensity || 0) - (a.predictedDensity || 0))[0]
+    || null
+  const hoveredSensor = visibleSensors.find(sensor => sensor.id === hoveredSensorId) || null
 
   return (
     <div style={styles.wrap} className="card widget-float">
       <div style={styles.header}>
         <div>
           <div style={styles.eyebrow}>Venue Floorplan</div>
-          <div style={styles.title}>Live zone occupancy on the operating layout</div>
+          <div style={styles.title}>Live arena intelligence across the operating layout</div>
         </div>
         <div style={styles.headerMetrics}>
           <StatPill icon={<Radar size={12} />} label={`${zones.length} zones`} />
@@ -29,9 +61,26 @@ export default function VenueMap({ nodes = [], edges = [] }) {
         </div>
       </div>
 
-      <div style={styles.content}>
+      <div style={styles.levelTabs}>
+        {[
+          { id: 'all', label: 'Full Venue' },
+          { id: 'bowl', label: 'Seating Bowl' },
+          { id: 'concourse', label: 'Concourses' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveLevel(tab.id)}
+            style={activeLevel === tab.id ? styles.levelTabActive : styles.levelTab}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={styles.content} className="venue-map-layout">
         <div style={styles.mapPanel}>
-          <svg viewBox="0 0 1000 700" style={styles.svg} aria-label="Venue floorplan">
+          <svg viewBox="0 0 1000 700" style={styles.svg} className="venue-map-svg" aria-label="Venue floorplan">
             <defs>
               {Object.entries(STATUS_COLORS).map(([status, color]) => (
                 <filter key={status} id={`zone-glow-${status}`} x="-60%" y="-60%" width="220%" height="220%">
@@ -67,7 +116,22 @@ export default function VenueMap({ nodes = [], edges = [] }) {
             <text x="120" y="350" textAnchor="middle" transform="rotate(-90 120 350)" style={styles.sideLabel}>WEST STAND</text>
             <text x="880" y="350" textAnchor="middle" transform="rotate(90 880 350)" style={styles.sideLabel}>EAST STAND</text>
 
-            {corridors.map(corridor => (
+            {visibleAmenities.map(feature => (
+              <g key={feature.id}>
+                <polygon
+                  points={feature.polygon}
+                  fill={amenityFill(feature.type)}
+                  stroke="rgba(255, 240, 207, 0.18)"
+                  strokeWidth="1"
+                  opacity="0.9"
+                />
+                <text x={feature.center.x} y={feature.center.y + 4} textAnchor="middle" style={styles.amenityLabel}>
+                  {feature.label}
+                </text>
+              </g>
+            ))}
+
+            {visibleCorridors.map(corridor => (
               <g key={corridor.id}>
                 <path
                   d={corridor.path}
@@ -89,7 +153,7 @@ export default function VenueMap({ nodes = [], edges = [] }) {
               </g>
             ))}
 
-            {zones.map(zone => {
+            {visibleZones.map(zone => {
               const predictedHigher = zone.predictedDensity > zone.density + 0.05
               const selected = zone.id === selectedZone?.id
               return (
@@ -132,7 +196,24 @@ export default function VenueMap({ nodes = [], edges = [] }) {
               )
             })}
 
-            {sensors.map(sensor => {
+            {visibleCirculation.map(feature => (
+              <g key={feature.id} transform={`translate(${feature.x}, ${feature.y})`}>
+                {feature.type === 'stair' && (
+                  <>
+                    <rect x="-12" y="-12" width="24" height="24" rx="6" fill="rgba(13, 16, 22, 0.9)" stroke="rgba(245, 223, 173, 0.45)" />
+                    <path d="M-6 6 L-1 6 L-1 1 L4 1 L4 -4 L9 -4" fill="none" stroke="rgba(245, 223, 173, 0.8)" strokeWidth="2" />
+                  </>
+                )}
+                {feature.type === 'vomitory' && (
+                  <>
+                    <circle r="9" fill="rgba(27, 19, 10, 0.94)" stroke="rgba(245, 223, 173, 0.34)" />
+                    <path d="M-4 -2 L0 -6 L4 -2 M-4 2 L0 6 L4 2" fill="none" stroke="rgba(245, 223, 173, 0.78)" strokeWidth="1.5" />
+                  </>
+                )}
+              </g>
+            ))}
+
+            {visibleSensors.map(sensor => {
               const active = sensor.id === hoveredSensorId
               return (
                 <g
@@ -169,6 +250,10 @@ export default function VenueMap({ nodes = [], edges = [] }) {
             <LegendSwatch color="rgba(239, 68, 68, 0.76)" label="Risk zone" />
             <LegendSwatch dashed label="3-5 min forecast" />
             <LegendSwatch line label="Corridor flow" />
+            <LegendSwatch icon={<Building2 size={12} />} label="Suites / clubs" />
+            <LegendSwatch icon={<ShoppingBag size={12} />} label="Merch / amenities" />
+            <LegendSwatch icon={<HeartPulse size={12} />} label="First aid" />
+            <LegendSwatch icon={<GitBranchPlus size={12} />} label="Stairs / vomitories" />
           </div>
         </div>
 
@@ -186,6 +271,7 @@ export default function VenueMap({ nodes = [], edges = [] }) {
             <MetricRow label="Projected in 5 min" value={percent(selectedZone?.predictedDensity)} />
             <MetricRow label="Confidence" value={percent(selectedZone?.confidence)} />
             <MetricRow label="Dominant inflow" value={selectedZone?.dominantInflowSource || 'Mixed venue traffic'} />
+            <MetricRow label="Operational level" value={selectedZone?.level === 'bowl' ? 'Seating bowl' : selectedZone?.level === 'concourse' ? 'Concourse layer' : 'Cross-venue'} />
             <div style={styles.recommendation}>
               <div style={styles.recommendationLabel}>Recommended action</div>
               <div style={styles.recommendationText}>{selectedZone?.recommendedAction || 'Monitor adjacent corridors and keep operator review active.'}</div>
@@ -194,7 +280,7 @@ export default function VenueMap({ nodes = [], edges = [] }) {
 
           <div style={styles.sidebarCard}>
             <div style={styles.sidebarEyebrow}>Sensor Trace</div>
-            {sensors.slice(0, 5).map(sensor => (
+            {visibleSensors.slice(0, 5).map(sensor => (
               <div key={sensor.id} style={styles.sensorRow}>
                 <div>
                   <div style={styles.sensorName}>{sensor.label}</div>
@@ -206,7 +292,7 @@ export default function VenueMap({ nodes = [], edges = [] }) {
           </div>
 
           <div style={styles.sidebarCard}>
-            <div style={styles.sidebarEyebrow}>Interpretation</div>
+            <div style={styles.sidebarEyebrow}>Venue Layers</div>
             <div style={styles.noteRow}>
               <Activity size={14} color="var(--accent-primary)" />
               <span style={styles.noteText}>Solid fills show current occupancy by zone, not abstract node pressure.</span>
@@ -215,6 +301,10 @@ export default function VenueMap({ nodes = [], edges = [] }) {
               <ChevronRight size={14} color="var(--accent-primary)" />
               <span style={styles.noteText}>Animated corridor pulses now follow actual walkways between gates, concourses, sections, and exits.</span>
             </div>
+            <div style={styles.noteRow}>
+              <Landmark size={14} color="var(--accent-primary)" />
+              <span style={styles.noteText}>Level toggles let operators isolate the seating bowl or concourse layer without losing the live density story.</span>
+            </div>
           </div>
         </div>
       </div>
@@ -222,7 +312,7 @@ export default function VenueMap({ nodes = [], edges = [] }) {
   )
 }
 
-function LegendSwatch({ color, label, dashed = false, line = false }) {
+function LegendSwatch({ color, label, dashed = false, line = false, icon = null }) {
   return (
     <div style={styles.legendItem}>
       <div
@@ -233,6 +323,7 @@ function LegendSwatch({ color, label, dashed = false, line = false }) {
         }}
       >
         {line && <div style={styles.legendLine} />}
+        {icon && !line && !dashed && <span style={styles.legendIcon}>{icon}</span>}
       </div>
       <span style={styles.legendLabel}>{label}</span>
     </div>
@@ -268,6 +359,15 @@ function fillForDensity(density = 0) {
   return 'rgba(16, 185, 129, 0.4)'
 }
 
+function amenityFill(type) {
+  if (type === 'suite') return 'rgba(117, 154, 255, 0.22)'
+  if (type === 'club') return 'rgba(196, 149, 60, 0.25)'
+  if (type === 'merch') return 'rgba(138, 190, 133, 0.25)'
+  if (type === 'restroom') return 'rgba(99, 176, 220, 0.22)'
+  if (type === 'medical') return 'rgba(239, 103, 103, 0.24)'
+  return 'rgba(245, 223, 173, 0.16)'
+}
+
 if (typeof document !== 'undefined' && !document.getElementById('venue-floorplan-style')) {
   const style = document.createElement('style')
   style.id = 'venue-floorplan-style'
@@ -275,6 +375,13 @@ if (typeof document !== 'undefined' && !document.getElementById('venue-floorplan
     @keyframes venueFlow { from { stroke-dashoffset: 60; } to { stroke-dashoffset: 0; } }
     @keyframes predictionPulse { 0%,100% { stroke-opacity: 0.35; } 50% { stroke-opacity: 1; } }
     @keyframes sensorPulse { 0%,100% { opacity: 0.55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.25); } }
+    @media (max-width: 1180px) {
+      .venue-map-layout { grid-template-columns: 1fr !important; }
+      .venue-map-svg { min-height: 640px !important; }
+    }
+    @media (max-width: 760px) {
+      .venue-map-svg { min-height: 520px !important; }
+    }
   `
   document.head.appendChild(style)
 }
@@ -310,6 +417,32 @@ const styles = {
     gap: '8px',
     flexWrap: 'wrap',
   },
+  levelTabs: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap',
+  },
+  levelTab: {
+    border: '1px solid rgba(241, 205, 122, 0.18)',
+    background: 'rgba(255,255,255,0.03)',
+    color: 'var(--text-secondary)',
+    borderRadius: '999px',
+    padding: '9px 14px',
+    cursor: 'pointer',
+    fontSize: 11,
+    fontWeight: 700,
+  },
+  levelTabActive: {
+    border: '1px solid rgba(241, 205, 122, 0.34)',
+    background: 'rgba(241, 205, 122, 0.12)',
+    color: 'var(--text-primary)',
+    borderRadius: '999px',
+    padding: '9px 14px',
+    cursor: 'pointer',
+    fontSize: 11,
+    fontWeight: 800,
+    boxShadow: '0 0 22px rgba(241, 205, 122, 0.08)',
+  },
   statPill: {
     display: 'flex',
     alignItems: 'center',
@@ -323,7 +456,7 @@ const styles = {
   },
   content: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gridTemplateColumns: 'minmax(0, 2.5fr) minmax(300px, 0.9fr)',
     gap: '18px',
   },
   mapPanel: {
@@ -337,6 +470,7 @@ const styles = {
     borderRadius: '22px',
     background: 'radial-gradient(circle at 50% 30%, rgba(245, 215, 150, 0.06) 0%, rgba(8, 8, 8, 0.12) 52%, rgba(4, 4, 4, 0.42) 100%)',
     border: '1px solid rgba(241, 205, 122, 0.16)',
+    minHeight: '760px',
   },
   zoneLabel: {
     fontFamily: 'var(--font-body)',
@@ -390,6 +524,14 @@ const styles = {
     fontSize: 10,
     fontFamily: 'var(--font-body)',
   },
+  amenityLabel: {
+    fontFamily: 'var(--font-body)',
+    fontSize: 8,
+    fontWeight: 700,
+    fill: 'rgba(255, 241, 214, 0.7)',
+    letterSpacing: '0.06em',
+    pointerEvents: 'none',
+  },
   legend: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -409,6 +551,12 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  legendIcon: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'rgba(245, 223, 173, 0.84)',
   },
   legendLine: {
     width: 20,

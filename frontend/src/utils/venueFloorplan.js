@@ -248,6 +248,34 @@ const MICRO_ZONE_TEMPLATES = {
   ],
 }
 
+const STATIC_FEATURES = [
+  { id: 'suite_row_nw', label: 'Suite Row NW', type: 'suite', level: 'bowl', polygon: '300,188 388,188 380,214 294,214', center: { x: 342, y: 202 } },
+  { id: 'suite_row_ne', label: 'Suite Row NE', type: 'suite', level: 'bowl', polygon: '612,188 700,188 708,214 620,214', center: { x: 658, y: 202 } },
+  { id: 'club_north', label: 'North Club', type: 'club', level: 'concourse', polygon: '430,92 570,92 570,118 430,118', center: { x: 500, y: 105 } },
+  { id: 'club_south', label: 'South Club', type: 'club', level: 'concourse', polygon: '430,582 570,582 570,608 430,608', center: { x: 500, y: 595 } },
+  { id: 'merch_west', label: 'Merch Store', type: 'merch', level: 'concourse', polygon: '118,292 160,292 160,336 118,336', center: { x: 139, y: 314 } },
+  { id: 'merch_east', label: 'Merch Kiosk', type: 'merch', level: 'concourse', polygon: '840,364 882,364 882,406 840,406', center: { x: 861, y: 386 } },
+  { id: 'restroom_nw', label: 'Restrooms NW', type: 'restroom', level: 'concourse', polygon: '320,94 362,94 362,122 320,122', center: { x: 341, y: 108 } },
+  { id: 'restroom_ne', label: 'Restrooms NE', type: 'restroom', level: 'concourse', polygon: '638,94 680,94 680,122 638,122', center: { x: 659, y: 108 } },
+  { id: 'restroom_sw', label: 'Restrooms SW', type: 'restroom', level: 'concourse', polygon: '320,578 362,578 362,606 320,606', center: { x: 341, y: 592 } },
+  { id: 'restroom_se', label: 'Restrooms SE', type: 'restroom', level: 'concourse', polygon: '638,578 680,578 680,606 638,606', center: { x: 659, y: 592 } },
+  { id: 'first_aid_w', label: 'First Aid West', type: 'medical', level: 'concourse', polygon: '180,430 226,430 226,468 180,468', center: { x: 203, y: 449 } },
+  { id: 'first_aid_e', label: 'First Aid East', type: 'medical', level: 'concourse', polygon: '774,232 820,232 820,270 774,270', center: { x: 797, y: 251 } },
+  { id: 'hospitality_n', label: 'Hospitality Lounge', type: 'hospitality', level: 'bowl', polygon: '434,220 566,220 566,250 434,250', center: { x: 500, y: 235 } },
+  { id: 'broadcast_s', label: 'Broadcast / Ops', type: 'hospitality', level: 'bowl', polygon: '434,450 566,450 566,480 434,480', center: { x: 500, y: 465 } },
+]
+
+const CIRCULATION_FEATURES = [
+  { id: 'stair_nw', label: 'Stair Core NW', type: 'stair', level: 'all', x: 286, y: 210 },
+  { id: 'stair_ne', label: 'Stair Core NE', type: 'stair', level: 'all', x: 714, y: 210 },
+  { id: 'stair_sw', label: 'Stair Core SW', type: 'stair', level: 'all', x: 286, y: 490 },
+  { id: 'stair_se', label: 'Stair Core SE', type: 'stair', level: 'all', x: 714, y: 490 },
+  { id: 'vom_n1', label: 'Vomitory N1', type: 'vomitory', level: 'bowl', x: 404, y: 216 },
+  { id: 'vom_n2', label: 'Vomitory N2', type: 'vomitory', level: 'bowl', x: 596, y: 216 },
+  { id: 'vom_s1', label: 'Vomitory S1', type: 'vomitory', level: 'bowl', x: 404, y: 484 },
+  { id: 'vom_s2', label: 'Vomitory S2', type: 'vomitory', level: 'bowl', x: 596, y: 484 },
+]
+
 function getStatusColor(status) {
   if (status === 'red') return '#ef4444'
   if (status === 'yellow') return '#f59e0b'
@@ -281,6 +309,8 @@ function inferZone(node) {
     riskLevel: predictedDensity >= 0.9 ? 'Critical' : predictedDensity >= 0.75 ? 'Elevated' : 'Observed',
     edgeGlow: predictedDensity >= 0.8 || node.status === 'red',
     color: getStatusColor(node.status),
+    level: base.zoneType === 'section' ? 'bowl' : base.zoneType === 'concourse' || base.zoneType === 'concession' ? 'concourse' : 'all',
+    shortLabel: base.label || node.name || node.id,
   }
 }
 
@@ -331,6 +361,7 @@ function deriveMicroZones(zones) {
         parentId: zone.id,
         isVirtual: true,
         selectable: true,
+        level: zone.level,
       }
     })
   })
@@ -385,5 +416,11 @@ export function buildVenueFloorplan(nodes = [], edges = []) {
     .filter(Boolean)
 
   const sensors = buildSensors(baseZones)
-  return { zones, corridors, sensors }
+  return {
+    zones,
+    corridors,
+    sensors,
+    amenities: STATIC_FEATURES,
+    circulation: CIRCULATION_FEATURES,
+  }
 }
