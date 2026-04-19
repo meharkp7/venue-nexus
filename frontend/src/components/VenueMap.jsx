@@ -62,6 +62,10 @@ export default function VenueMap({ nodes = [], edges = [] }) {
             <path d="M212 562 L788 562" stroke="rgba(241, 205, 122, 0.08)" strokeWidth="16" strokeLinecap="round" />
             <path d="M174 220 L174 480" stroke="rgba(241, 205, 122, 0.08)" strokeWidth="16" strokeLinecap="round" />
             <path d="M826 220 L826 480" stroke="rgba(241, 205, 122, 0.08)" strokeWidth="16" strokeLinecap="round" />
+            <text x="500" y="110" textAnchor="middle" style={styles.tierLabel}>UPPER BOWL</text>
+            <text x="500" y="604" textAnchor="middle" style={styles.tierLabel}>LOWER BOWL</text>
+            <text x="120" y="350" textAnchor="middle" transform="rotate(-90 120 350)" style={styles.sideLabel}>WEST STAND</text>
+            <text x="880" y="350" textAnchor="middle" transform="rotate(90 880 350)" style={styles.sideLabel}>EAST STAND</text>
 
             {corridors.map(corridor => (
               <g key={corridor.id}>
@@ -93,10 +97,10 @@ export default function VenueMap({ nodes = [], edges = [] }) {
                   <polygon
                     points={zone.polygon}
                     fill={fillForDensity(zone.density)}
-                    stroke={selected ? '#f8df9e' : 'rgba(255, 240, 207, 0.22)'}
-                    strokeWidth={selected ? 2.6 : 1.2}
+                    stroke={selected ? '#f8df9e' : zone.isVirtual ? 'rgba(255, 240, 207, 0.34)' : 'rgba(255, 240, 207, 0.22)'}
+                    strokeWidth={selected ? 2.6 : zone.isVirtual ? 1 : 1.2}
                     filter={zone.edgeGlow ? `url(#zone-glow-${zone.status})` : 'none'}
-                    opacity={0.95}
+                    opacity={zone.isVirtual ? 0.92 : 0.74}
                   />
                   {predictedHigher && (
                     <polygon
@@ -108,10 +112,20 @@ export default function VenueMap({ nodes = [], edges = [] }) {
                       style={{ animation: 'predictionPulse 2.4s ease-in-out infinite' }}
                     />
                   )}
-                  <text x={zone.center.x} y={zone.center.y - 8} textAnchor="middle" style={styles.zoneLabel}>
-                    {zone.label}
+                  <text
+                    x={zone.center.x}
+                    y={zone.center.y - (zone.isVirtual ? 4 : 8)}
+                    textAnchor="middle"
+                    style={zone.isVirtual ? styles.microZoneLabel : styles.zoneLabel}
+                  >
+                    {zone.shortLabel || zone.label}
                   </text>
-                  <text x={zone.center.x} y={zone.center.y + 14} textAnchor="middle" style={styles.zoneValue}>
+                  <text
+                    x={zone.center.x}
+                    y={zone.center.y + (zone.isVirtual ? 10 : 14)}
+                    textAnchor="middle"
+                    style={zone.isVirtual ? styles.microZoneValue : styles.zoneValue}
+                  >
                     {Math.round(zone.density * 100)}%
                   </text>
                 </g>
@@ -337,6 +351,33 @@ const styles = {
     fontWeight: 600,
     fill: 'rgba(255, 244, 220, 0.86)',
     pointerEvents: 'none',
+  },
+  microZoneLabel: {
+    fontFamily: 'var(--font-body)',
+    fontSize: 10,
+    fontWeight: 700,
+    fill: 'rgba(250, 236, 200, 0.95)',
+    letterSpacing: '0.04em',
+    pointerEvents: 'none',
+  },
+  microZoneValue: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: 9,
+    fontWeight: 600,
+    fill: 'rgba(255, 244, 220, 0.78)',
+    pointerEvents: 'none',
+  },
+  tierLabel: {
+    fontFamily: 'var(--font-display)',
+    fontSize: 14,
+    letterSpacing: '0.18em',
+    fill: 'rgba(245, 223, 173, 0.5)',
+  },
+  sideLabel: {
+    fontFamily: 'var(--font-display)',
+    fontSize: 12,
+    letterSpacing: '0.18em',
+    fill: 'rgba(245, 223, 173, 0.4)',
   },
   sensorTooltipTitle: {
     fill: '#f8df9e',

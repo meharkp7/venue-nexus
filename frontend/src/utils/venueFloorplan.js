@@ -205,6 +205,49 @@ const SENSOR_PREFIX = {
   seat: 'Seat',
 }
 
+const MICRO_ZONE_TEMPLATES = {
+  sector_101: [
+    { suffix: 'A', label: '101A', polygon: '294,226 382,226 364,294 280,294', center: { x: 330, y: 258 }, bias: -0.06 },
+    { suffix: 'B', label: '101B', polygon: '388,226 458,226 440,294 372,294', center: { x: 414, y: 258 }, bias: 0.03 },
+    { suffix: 'C', label: '101C', polygon: '276,300 438,300 420,326 266,326', center: { x: 352, y: 314 }, bias: 0.08 },
+  ],
+  sector_102: [
+    { suffix: 'A', label: '102A', polygon: '542,226 612,226 626,294 558,294', center: { x: 584, y: 258 }, bias: -0.02 },
+    { suffix: 'B', label: '102B', polygon: '618,226 706,226 724,294 640,294', center: { x: 670, y: 258 }, bias: 0.05 },
+    { suffix: 'C', label: '102C', polygon: '564,300 726,300 736,326 582,326', center: { x: 648, y: 314 }, bias: 0.1 },
+  ],
+  sector_103: [
+    { suffix: 'A', label: '103A', polygon: '266,374 420,374 438,402 276,402', center: { x: 352, y: 390 }, bias: 0.07 },
+    { suffix: 'B', label: '103B', polygon: '280,408 364,408 382,474 294,474', center: { x: 330, y: 440 }, bias: -0.04 },
+    { suffix: 'C', label: '103C', polygon: '372,408 440,408 458,474 388,474', center: { x: 414, y: 440 }, bias: 0.02 },
+  ],
+  sector_104: [
+    { suffix: 'A', label: '104A', polygon: '582,374 736,374 726,402 564,402', center: { x: 648, y: 390 }, bias: 0.12 },
+    { suffix: 'B', label: '104B', polygon: '558,408 626,408 612,474 542,474', center: { x: 584, y: 440 }, bias: -0.03 },
+    { suffix: 'C', label: '104C', polygon: '640,408 724,408 706,474 618,474', center: { x: 670, y: 440 }, bias: 0.04 },
+  ],
+  concourse_n: [
+    { suffix: 'W', label: 'North West Portal', polygon: '274,128 410,128 394,186 288,186', center: { x: 342, y: 156 }, bias: 0.04 },
+    { suffix: 'C', label: 'North Central Portal', polygon: '420,128 580,128 580,186 420,186', center: { x: 500, y: 156 }, bias: 0.08 },
+    { suffix: 'E', label: 'North East Portal', polygon: '590,128 726,128 712,186 606,186', center: { x: 658, y: 156 }, bias: -0.01 },
+  ],
+  concourse_s: [
+    { suffix: 'W', label: 'South West Portal', polygon: '288,514 394,514 410,572 274,572', center: { x: 342, y: 544 }, bias: -0.02 },
+    { suffix: 'C', label: 'South Central Portal', polygon: '420,514 580,514 580,572 420,572', center: { x: 500, y: 544 }, bias: 0.06 },
+    { suffix: 'E', label: 'South East Portal', polygon: '606,514 712,514 726,572 590,572', center: { x: 658, y: 544 }, bias: 0.03 },
+  ],
+  concourse_e: [
+    { suffix: 'N', label: 'East Upper Walk', polygon: '748,216 822,252 792,314 724,276', center: { x: 776, y: 266 }, bias: 0.02 },
+    { suffix: 'C', label: 'East Club Walk', polygon: '722,286 804,330 804,372 724,348', center: { x: 764, y: 330 }, bias: 0.09 },
+    { suffix: 'S', label: 'East Lower Walk', polygon: '724,360 792,386 822,448 748,484', center: { x: 776, y: 424 }, bias: 0.05 },
+  ],
+  concourse_w: [
+    { suffix: 'N', label: 'West Upper Walk', polygon: '178,252 252,216 276,276 208,314', center: { x: 224, y: 266 }, bias: 0.01 },
+    { suffix: 'C', label: 'West Club Walk', polygon: '196,330 276,286 276,348 196,372', center: { x: 236, y: 330 }, bias: 0.07 },
+    { suffix: 'S', label: 'West Lower Walk', polygon: '208,386 276,360 252,484 178,448', center: { x: 224, y: 424 }, bias: -0.03 },
+  ],
+}
+
 function getStatusColor(status) {
   if (status === 'red') return '#ef4444'
   if (status === 'yellow') return '#f59e0b'
@@ -265,6 +308,38 @@ function buildSensors(zones) {
   })
 }
 
+function deriveMicroZones(zones) {
+  return zones.flatMap((zone) => {
+    const templates = MICRO_ZONE_TEMPLATES[zone.id] || []
+    return templates.map((template, index) => {
+      const density = clamp(zone.density + template.bias, 0.08, 0.99)
+      const predictedDensity = clamp(zone.predictedDensity + template.bias * 0.7, 0.08, 0.99)
+      const status = predictedDensity >= 0.8 ? 'red' : predictedDensity >= 0.5 ? 'yellow' : 'green'
+      return {
+        ...zone,
+        id: `${zone.id}-${template.suffix}`,
+        label: template.label,
+        shortLabel: template.label,
+        polygon: template.polygon,
+        center: template.center,
+        density,
+        predictedDensity,
+        status,
+        riskLevel: predictedDensity >= 0.9 ? 'Critical' : predictedDensity >= 0.75 ? 'Elevated' : 'Observed',
+        edgeGlow: predictedDensity >= 0.82,
+        color: getStatusColor(status),
+        parentId: zone.id,
+        isVirtual: true,
+        selectable: true,
+      }
+    })
+  })
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value))
+}
+
 function pathForEdge(source, target) {
   const sx = source.center.x
   const sy = source.center.y
@@ -281,8 +356,10 @@ function pathForEdge(source, target) {
 }
 
 export function buildVenueFloorplan(nodes = [], edges = []) {
-  const zones = nodes.map(inferZone)
-  const zoneMap = Object.fromEntries(zones.map(zone => [zone.id, zone]))
+  const baseZones = nodes.map(inferZone)
+  const microZones = deriveMicroZones(baseZones)
+  const zones = [...baseZones, ...microZones]
+  const zoneMap = Object.fromEntries(baseZones.map(zone => [zone.id, zone]))
   const corridors = edges
     .map((edge, index) => {
       const source = zoneMap[edge.source]
@@ -307,6 +384,6 @@ export function buildVenueFloorplan(nodes = [], edges = []) {
     })
     .filter(Boolean)
 
-  const sensors = buildSensors(zones)
+  const sensors = buildSensors(baseZones)
   return { zones, corridors, sensors }
 }
