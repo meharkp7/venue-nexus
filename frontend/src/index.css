@@ -489,3 +489,54 @@ button, .btn {
   border-radius: 2px;
   transition: width 0.5s ease;
 }
+/* ─── ACCESSIBILITY: Add these to your existing index.css ─── */
+
+/* Skip link - visible on keyboard focus only */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  background: #f1cd7a;
+  color: #140f08;
+  padding: 12px 20px;
+  font-weight: 700;
+  font-size: 14px;
+  z-index: 9999;
+  border-radius: 0 0 8px 0;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* Focus ring for all interactive elements */
+*:focus-visible {
+  outline: 2px solid #f1cd7a;
+  outline-offset: 2px;
+}
+
+/* SVG interactive elements focus */
+g[role="button"]:focus-visible {
+  outline: 2px solid #f1cd7a;
+}
+
+/* Remove outline suppression so keyboard users can see focus */
+button:focus {
+  outline: 2px solid rgba(241, 205, 122, 0.6);
+  outline-offset: 2px;
+}
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

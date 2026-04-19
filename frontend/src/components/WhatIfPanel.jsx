@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FlaskConical, ChevronRight, ArrowRight, Play, BarChart3 } from 'lucide-react'
+import { FlaskConical, ArrowRight, Play, BarChart3 } from 'lucide-react'
 import { api } from '../services/api'
 
 const PRESET_SCENARIOS = [
@@ -49,11 +49,18 @@ export default function WhatIfPanel() {
   }
 
   return (
-    <div style={styles.wrap}>
+    <section style={styles.wrap} aria-label="What-if scenario simulation">
       <div style={styles.header}>
-        <FlaskConical size={12} color="var(--accent-violet)" />
-        <span style={styles.title}>WHAT-IF SIMULATION</span>
-        <button style={styles.runBtn} onClick={runSimulation} disabled={loading}>
+        <FlaskConical size={12} color="var(--accent-violet)" aria-hidden="true" />
+        <span style={styles.title} id="whatif-title">WHAT-IF SIMULATION</span>
+        <button
+          style={styles.runBtn}
+          onClick={() => runSimulation()}
+          disabled={loading}
+          aria-label={loading ? 'Running simulation, please wait' : 'Run what-if simulation'}
+          aria-busy={loading}
+          type="button"
+        >
           {loading ? '⏳ Simulating...' : '▶ Simulate Action'}
         </button>
       </div>
@@ -62,27 +69,37 @@ export default function WhatIfPanel() {
       {!scenarios && !loading && (
         <div style={styles.presetSection}>
           <div style={styles.presetHeader}>
-            <BarChart3 size={12} color="var(--accent-violet)" />
-            <span>Quick Scenarios</span>
+            <BarChart3 size={12} color="var(--accent-violet)" aria-hidden="true" />
+            <span id="quick-scenarios-label">Quick Scenarios</span>
           </div>
-          <div style={styles.presetGrid}>
+          <div
+            style={styles.presetGrid}
+            role="list"
+            aria-labelledby="quick-scenarios-label"
+          >
             {PRESET_SCENARIOS.map((scenario, i) => (
               <button
                 key={i}
+                role="listitem"
                 style={styles.presetBtn}
                 onClick={() => handlePresetScenario(scenario)}
                 disabled={loading}
+                aria-label={`Run scenario: ${scenario}`}
+                type="button"
               >
                 {scenario}
               </button>
             ))}
           </div>
-          
+
           {/* Custom Query Input */}
           <div style={styles.customSection}>
-            <div style={styles.customHeader}>Custom Scenario</div>
+            <label htmlFor="custom-scenario-input" style={styles.customHeader}>
+              Custom Scenario
+            </label>
             <div style={styles.customInputRow}>
               <input
+                id="custom-scenario-input"
                 style={styles.customInput}
                 placeholder="What if we...?"
                 value={customQuery}
@@ -90,125 +107,146 @@ export default function WhatIfPanel() {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleCustomScenario()
                 }}
+                aria-label="Enter a custom what-if scenario"
+                aria-describedby="custom-scenario-hint"
               />
               <button
                 style={styles.customRunBtn}
                 onClick={handleCustomScenario}
                 disabled={loading || !customQuery.trim()}
+                aria-label="Run custom scenario"
+                type="button"
               >
-                <Play size={12} />
+                <Play size={12} aria-hidden="true" />
               </button>
             </div>
+            <span id="custom-scenario-hint" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+              Press Enter or click the play button to run your custom scenario.
+            </span>
           </div>
+        </div>
+      )}
+
+      {/* Loading state */}
+      {loading && (
+        <div role="status" aria-live="polite" style={{ color: 'var(--text-muted)', fontSize: 12, padding: '12px 0' }}>
+          Running simulation, please wait...
         </div>
       )}
 
       {scenarios && (
         <div>
           {/* Current State Summary */}
-          <div style={styles.currentState}>
+          <div style={styles.currentState} role="status" aria-label={`Current venue density is ${Math.round(currentDensity * 100)} percent`}>
             <div style={styles.stateLabel}>CURRENT DENSITY</div>
             <div style={styles.stateValue}>{Math.round(currentDensity * 100)}%</div>
             <div style={styles.predictedImpactLabel}>Predicted impact shown below</div>
-            <button 
+            <button
               style={styles.newSimBtn}
               onClick={() => {
                 setScenarios(null)
                 setSelected(null)
               }}
+              aria-label="Start a new what-if simulation"
+              type="button"
             >
               ← New Simulation
             </button>
           </div>
-          
+
           {/* Scenarios List */}
-          <div style={styles.scenarioList}>
+          <div
+            style={styles.scenarioList}
+            role="list"
+            aria-label="Simulation scenario results"
+          >
             {scenarios.map((s, i) => {
               const riskColor = RISK_COLOR[s.risk_level] || '#7a9ab0'
               const isSelected = selected === i
               const improvementColor = s.improvement_pct > 0 ? 'var(--accent-success)' : 'var(--accent-danger)'
 
               return (
-                <div key={i}
+                <div
+                  key={i}
+                  role="listitem"
                   style={{
                     ...styles.scenarioCard,
                     borderColor: isSelected ? 'var(--border-light)' : 'var(--border)',
                     background: isSelected ? 'var(--bg-card-alt)' : 'var(--bg-panel)',
                   }}
                   className="fade-in"
-                  onClick={() => setSelected(isSelected ? null : i)}
                 >
-                  <div style={styles.scenarioTop}>
-                    <div style={styles.scenarioName}>{s.scenario_name}</div>
-                    <span style={{
-                      ...styles.riskBadge,
-                      color: riskColor,
-                      background: `${riskColor}12`,
-                      border: `1px solid ${riskColor}30`,
-                    }}>
-                      {s.risk_level.toUpperCase()}
-                    </span>
-                  </div>
-
-                  <div style={styles.scenarioDesc}>{s.description}</div>
-
-                  <div style={styles.densityComparison}>
-                    <div style={styles.densityRow}>
-                      <span style={styles.densityLabel}>Before</span>
-                      <span style={styles.densityValue}>{Math.round(s.density_before * 100)}%</span>
-                    </div>
-                    <ArrowRight size={12} color={improvementColor} />
-                    <div style={styles.densityRow}>
-                      <span style={styles.densityLabel}>After</span>
-                      <span style={{ ...styles.densityValue, color: improvementColor }}>
-                        {Math.round(s.density_after * 100)}%
+                  <button
+                    type="button"
+                    style={styles.scenarioToggleBtn}
+                    onClick={() => setSelected(isSelected ? null : i)}
+                    aria-expanded={isSelected}
+                    aria-label={`${s.scenario_name}, risk level ${s.risk_level}, density change from ${Math.round(s.density_before * 100)} to ${Math.round(s.density_after * 100)} percent. Click to ${isSelected ? 'collapse' : 'expand'} details.`}
+                  >
+                    <div style={styles.scenarioTop}>
+                      <div style={styles.scenarioName}>{s.scenario_name}</div>
+                      <span style={{
+                        ...styles.riskBadge,
+                        color: riskColor,
+                        background: `${riskColor}12`,
+                        border: `1px solid ${riskColor}30`,
+                      }}>
+                        {s.risk_level.toUpperCase()}
                       </span>
                     </div>
-                    <span style={{
-                      ...styles.improvementBadge,
-                      color: improvementColor,
-                      background: `${improvementColor}12`,
-                    }}>
-                      Predicted impact {s.improvement_pct > 0 ? '↓' : '↑'} {Math.abs(s.improvement_pct)}%
-                    </span>
-                  </div>
 
-                  <div style={styles.beforeAfterBar}>
-                    <div style={styles.beforeAfterTrack}>
-                      <div
-                        style={{
-                          ...styles.beforeFill,
-                          width: `${Math.round(s.density_before * 100)}%`,
-                        }}
-                      />
-                    </div>
-                    <div style={styles.beforeAfterTrack}>
-                      <div
-                        style={{
-                          ...styles.afterFill,
-                          width: `${Math.round(s.density_after * 100)}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
+                    <div style={styles.scenarioDesc}>{s.description}</div>
 
-                  <div style={styles.simMeta}>
-                    <span style={styles.simMetaPill}>ETA {s.eta_minutes ?? 'n/a'}m</span>
-                    <span style={styles.simMetaPill}>{s.risk_level.toUpperCase()} risk</span>
-                  </div>
+                    <div style={styles.densityComparison} aria-hidden="true">
+                      <div style={styles.densityRow}>
+                        <span style={styles.densityLabel}>Before</span>
+                        <span style={styles.densityValue}>{Math.round(s.density_before * 100)}%</span>
+                      </div>
+                      <ArrowRight size={12} color={improvementColor} />
+                      <div style={styles.densityRow}>
+                        <span style={styles.densityLabel}>After</span>
+                        <span style={{ ...styles.densityValue, color: improvementColor }}>
+                          {Math.round(s.density_after * 100)}%
+                        </span>
+                      </div>
+                      <span style={{
+                        ...styles.improvementBadge,
+                        color: improvementColor,
+                        background: `${improvementColor}12`,
+                      }}>
+                        Predicted impact {s.improvement_pct > 0 ? '↓' : '↑'} {Math.abs(s.improvement_pct)}%
+                      </span>
+                    </div>
+
+                    <div style={styles.beforeAfterBar} aria-hidden="true">
+                      <div style={styles.beforeAfterTrack}>
+                        <div style={{ ...styles.beforeFill, width: `${Math.round(s.density_before * 100)}%` }} />
+                      </div>
+                      <div style={styles.beforeAfterTrack}>
+                        <div style={{ ...styles.afterFill, width: `${Math.round(s.density_after * 100)}%` }} />
+                      </div>
+                    </div>
+
+                    <div style={styles.simMeta} aria-hidden="true">
+                      <span style={styles.simMetaPill}>ETA {s.eta_minutes ?? 'n/a'}m</span>
+                      <span style={styles.simMetaPill}>{s.risk_level.toUpperCase()} risk</span>
+                    </div>
+                  </button>
 
                   {isSelected && (
-                    <div style={styles.expandedInfo}>
+                    <div style={styles.expandedInfo} aria-live="polite">
                       <div style={styles.recLabel}>RECOMMENDATION</div>
                       <div style={styles.recText}>{s.recommendation}</div>
                       {s.affected_nodes && s.affected_nodes.length > 0 && (
                         <>
                           <div style={styles.recLabel}>AFFECTED ZONES</div>
-                          <div style={styles.zonesList}>
+                          <ul style={{ ...styles.zonesList, listStyle: 'none', padding: 0, margin: 0 }} aria-label="Affected zones">
                             {s.affected_nodes.map((node, j) => (
-                              <span key={j} style={styles.zoneTag}>{node}</span>
+                              <li key={j} style={{ display: 'inline' }}>
+                                <span style={styles.zoneTag}>{node}</span>
+                              </li>
                             ))}
-                          </div>
+                          </ul>
                         </>
                       )}
                     </div>
@@ -219,7 +257,7 @@ export default function WhatIfPanel() {
           </div>
         </div>
       )}
-    </div>
+    </section>
   )
 }
 
@@ -307,7 +345,8 @@ const styles = {
     fontSize: '11px',
     fontWeight: '600',
     color: 'var(--text-muted)',
-    letterSpacing: '0.04em'
+    letterSpacing: '0.04em',
+    display: 'block',
   },
   customInputRow: {
     display: 'flex',
@@ -377,17 +416,28 @@ const styles = {
   scenarioList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 8
+    gap: 8,
+    marginTop: 8,
   },
   scenarioCard: {
-    padding: '12px',
     borderRadius: 'var(--radius)',
     border: '1px solid',
+    display: 'flex',
+    flexDirection: 'column',
+    transition: 'all 0.2s',
+    overflow: 'hidden',
+  },
+  scenarioToggleBtn: {
+    width: '100%',
+    background: 'transparent',
+    border: 'none',
+    padding: '12px',
+    textAlign: 'left',
+    color: 'inherit',
     cursor: 'pointer',
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
-    transition: 'all 0.2s',
   },
   scenarioTop: {
     display: 'flex',
@@ -482,7 +532,7 @@ const styles = {
   },
   expandedInfo: {
     borderTop: '1px solid var(--border)',
-    paddingTop: 10,
+    padding: '10px 12px',
     display: 'flex',
     flexDirection: 'column',
     gap: 6,
@@ -511,6 +561,9 @@ const styles = {
     padding: '2px 6px',
     borderRadius: '4px',
     fontWeight: '500',
-    fontFamily: 'var(--font-mono)'
+    fontFamily: 'var(--font-mono)',
+    display: 'inline-block',
+    marginRight: 4,
+    marginBottom: 4,
   }
 }

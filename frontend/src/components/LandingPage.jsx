@@ -31,9 +31,9 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="landing-page">
-      {/* Animated Background */}
-      <div className="background-animation">
+    <div className="landing-page" role="main" id="main-content">
+      {/* Animated Background — hidden from screen readers */}
+      <div className="background-animation" aria-hidden="true">
         <div className="mesh-overlay" />
         <div className="noise-overlay" />
         <div className="floating-shapes">
@@ -52,7 +52,7 @@ const LandingPage = () => {
             />
           ))}
         </div>
-        <div 
+        <div
           className="gradient-orb"
           style={{
             transform: `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`
@@ -69,43 +69,49 @@ const LandingPage = () => {
       {/* Hero Content */}
       <div className={`hero-content ${isLoaded ? 'loaded' : ''}`}>
         <div className="hero-text">
-          <div className="hero-kicker">Premium Operations Intelligence</div>
+          <p className="hero-kicker" aria-label="Product category: Premium Operations Intelligence">Premium Operations Intelligence</p>
           <h1 className="hero-title">
             <span className="title-gradient">VenueNexus</span>
             <br />
             <span className="title-subtitle">Black Gold Command Surface</span>
           </h1>
-          
+
           <p className="hero-description">
             A cinematic control layer for live venue operations with predictive crowd intelligence,
             fast intervention controls, and ambient situational awareness.
           </p>
 
-          <div className="hero-features">
-            <div className="feature-item">
-              <div className="feature-icon">🧠</div>
+          <ul className="hero-features" role="list" aria-label="Key features" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <li className="feature-item" role="listitem">
+              <div className="feature-icon" aria-hidden="true">🧠</div>
               <span>AI-Powered Analytics</span>
-            </div>
-            <div className="feature-item">
-              <div className="feature-icon">📊</div>
+            </li>
+            <li className="feature-item" role="listitem">
+              <div className="feature-icon" aria-hidden="true">📊</div>
               <span>Real-Time Insights</span>
-            </div>
-            <div className="feature-item">
-              <div className="feature-icon">⚡</div>
+            </li>
+            <li className="feature-item" role="listitem">
+              <div className="feature-icon" aria-hidden="true">⚡</div>
               <span>Lightning Fast</span>
-            </div>
-          </div>
+            </li>
+          </ul>
 
-          <button className="cta-button" onClick={handleStartDemo}>
+          <button
+            className="cta-button"
+            onClick={handleStartDemo}
+            aria-label="Start the VenueNexus dashboard experience"
+            type="button"
+          >
             <span className="button-text">Start Experience</span>
-            <div className="button-glow"></div>
-            <div className="button-particles"></div>
+            <div className="button-glow" aria-hidden="true"></div>
+            <div className="button-particles" aria-hidden="true"></div>
           </button>
         </div>
 
-        <div className="hero-visual">
-          <div className="floating-card">
-            <div className="card-header">
+        {/* Live analytics preview card */}
+        <div className="hero-visual" aria-label="Live analytics preview" role="img">
+          <div className="floating-card" role="presentation">
+            <div className="card-header" aria-hidden="true">
               <div className="card-dots">
                 <span></span>
                 <span></span>
@@ -113,34 +119,34 @@ const LandingPage = () => {
               </div>
               <div className="card-title">Live Analytics</div>
             </div>
-            <div className="card-content">
-              <div className="metric">
-                <div className="metric-value">2,847</div>
+            <div className="card-content" role="list" aria-label="Sample venue metrics">
+              <div className="metric" role="listitem">
+                <div className="metric-value" aria-label="2847 audience members in flow">2,847</div>
                 <div className="metric-label">Audience In Flow</div>
               </div>
-              <div className="metric">
-                <div className="metric-value">94%</div>
+              <div className="metric" role="listitem">
+                <div className="metric-value" aria-label="94 percent signal confidence">94%</div>
                 <div className="metric-label">Signal Confidence</div>
               </div>
-              <div className="metric">
-                <div className="metric-value">0.3s</div>
+              <div className="metric" role="listitem">
+                <div className="metric-value" aria-label="0.3 second response latency">0.3s</div>
                 <div className="metric-label">Response Latency</div>
               </div>
             </div>
-            <div className="card-grid" />
+            <div className="card-grid" aria-hidden="true" />
           </div>
         </div>
       </div>
 
       {/* Bottom Section */}
-      <div className="bottom-section">
-        <div className="tech-stack">
-          <div className="tech-item">React</div>
-          <div className="tech-item">FastAPI</div>
-          <div className="tech-item">Vertex AI</div>
-          <div className="tech-item">Real-Time</div>
-        </div>
-      </div>
+      <footer className="bottom-section">
+        <nav className="tech-stack" aria-label="Technology stack">
+          <span className="tech-item">React</span>
+          <span className="tech-item">FastAPI</span>
+          <span className="tech-item">Vertex AI</span>
+          <span className="tech-item">Real-Time</span>
+        </nav>
+      </footer>
     </div>
   );
 };

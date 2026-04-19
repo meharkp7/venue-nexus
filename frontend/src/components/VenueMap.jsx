@@ -380,14 +380,16 @@ export default function VenueMap({ nodes = [], edges = [] }) {
               .slice(0, 4)
               .map(zone => (
                 <button
-                  key={zone.id}
-                  type="button"
-                  style={zone.id === selectedZone?.id ? styles.snapButtonActive : styles.snapButton}
-                  onClick={() => {
-                    setSelectedZoneId(zone.id)
-                    setViewport(getViewportForZone(zone))
-                  }}
-                >
+                    key={zone.id}
+                    type="button"
+                    aria-label={`Jump to ${zone.shortLabel || zone.label}, density ${Math.round(zone.density * 100)} percent`}
+                    aria-pressed={zone.id === selectedZone?.id}
+                    style={zone.id === selectedZone?.id ? styles.snapButtonActive : styles.snapButton}
+                    onClick={() => {
+                      setSelectedZoneId(zone.id)
+                      setViewport(getViewportForZone(zone))
+                    }}
+                  >
                   <span>{zone.shortLabel || zone.label}</span>
                   <span style={styles.snapDensity}>{Math.round(zone.density * 100)}%</span>
                 </button>
@@ -508,10 +510,17 @@ export default function VenueMap({ nodes = [], edges = [] }) {
                 return (
                   <g
                     key={zone.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${zone.label}, density ${Math.round(zone.density * 100)} percent, status ${zone.status || 'normal'}`}
+                    aria-pressed={zone.id === selectedZone?.id}
                     onClick={() => setSelectedZoneId(zone.id)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedZoneId(zone.id) } }}
                     onMouseEnter={() => setHoveredZoneId(zone.id)}
                     onMouseLeave={() => setHoveredZoneId(null)}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer', outline: 'none' }}
+                    onFocus={() => setHoveredZoneId(zone.id)}
+                    onBlur={() => setHoveredZoneId(null)}
                   >
                     <polygon
                       points={zone.polygon}
@@ -575,10 +584,16 @@ export default function VenueMap({ nodes = [], edges = [] }) {
                 return (
                   <g
                     key={sensor.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${sensor.title}, ${sensor.label}, reading ${sensor.reading} percent`}
                     transform={`translate(${sensor.x}, ${sensor.y})`}
                     onMouseEnter={() => setHoveredSensorId(sensor.id)}
                     onMouseLeave={() => setHoveredSensorId(null)}
-                    style={{ cursor: 'pointer' }}
+                    onFocus={() => setHoveredSensorId(sensor.id)}
+                    onBlur={() => setHoveredSensorId(null)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setHoveredSensorId(sensor.id) }}
+                    style={{ cursor: 'pointer', outline: 'none' }}
                   >
                     <circle r="8.5" fill="rgba(10, 10, 9, 0.94)" stroke={active ? '#f8df9e' : 'rgba(245, 223, 173, 0.52)'} strokeWidth="1.5" />
                     <circle r="2.3" fill="rgba(245, 223, 173, 0.9)" style={{ animation: 'sensorPulse 2s ease-in-out infinite' }} />
@@ -617,8 +632,8 @@ export default function VenueMap({ nodes = [], edges = [] }) {
                 <div style={styles.sidebarEyebrow}>Selected Zone</div>
                 <div style={styles.sidebarTitle}>{selectedZone.label}</div>
               </div>
-              <button type="button" style={styles.closeButton} onClick={() => setSelectedZoneId(null)}>
-                <X size={14} />
+              <button type="button" style={styles.closeButton} onClick={() => setSelectedZoneId(null)} aria-label="Close zone inspector">
+                <X size={14} aria-hidden="true" />
               </button>
             </div>
 
