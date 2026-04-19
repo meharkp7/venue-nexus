@@ -13,7 +13,9 @@ from app.models.state_model import CongestionAlert, AlertLevel
 
 class ScenarioService:
     def __init__(self):
-        self.scenarios_file = Path(__file__).parent.parent.parent.parent / "data" / "demo_scenarios_100.json"
+        from pathlib import Path
+        BASE_DIR = Path(__file__).resolve().parent.parent.parent
+        self.scenarios_file = BASE_DIR / "data" / "demo_scenarios_100.json"
         self.current_scenario = None
         self.last_rotation = time.time()
         self.rotation_interval = 10  # 10 seconds for maximum variety
