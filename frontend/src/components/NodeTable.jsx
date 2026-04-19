@@ -26,13 +26,13 @@ export default function NodeTable({ nodes = [] }) {
     <div style={styles.wrap} className="card widget-float">
       <div style={styles.header}>
         <Table size={12} color="var(--text-muted)" />
-        <span style={styles.title}>NODE STATUS TABLE</span>
+        <span style={styles.title}>ZONE STATUS TABLE</span>
       </div>
       <div style={styles.tableWrap}>
         <table style={styles.table}>
           <thead>
             <tr style={styles.trHead}>
-              <Th label="Node" field="name" />
+              <Th label="Zone" field="name" />
               <Th label="Type" field="node_type" />
               <Th label="Occupancy" field="current_occupancy" />
               <Th label="Capacity" field="capacity" />
