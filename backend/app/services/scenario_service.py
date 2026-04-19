@@ -155,8 +155,7 @@ class ScenarioService:
                         # Validate timestamp format
                         import datetime
                         # Try to parse the timestamp to validate it
-                        if 'T' in timestamp:
-                            datetime.datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                        datetime.datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
                     except (ValueError, AttributeError):
                         # If timestamp is invalid, use current time
                         timestamp = time.time()

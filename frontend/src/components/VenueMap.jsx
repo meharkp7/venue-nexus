@@ -226,7 +226,11 @@ export default function VenueMap({ nodes = [], edges = [] }) {
   }
 
   return (
-    <div style={styles.wrap} className="card widget-float">
+    <section
+      style={styles.wrap}
+      className="card widget-float"
+      aria-label="Interactive venue floorplan"
+    >
       <div style={styles.header}>
         <div>
           <div style={styles.eyebrow}>Venue Floorplan</div>
@@ -250,6 +254,8 @@ export default function VenueMap({ nodes = [], edges = [] }) {
               key={tab.id}
               type="button"
               onClick={() => setActiveLevel(tab.id)}
+              aria-pressed={activeLevel === tab.id}
+              aria-label={`Show ${tab.label}`}
               style={activeLevel === tab.id ? styles.levelTabActive : styles.levelTab}
             >
               {tab.label}
@@ -263,6 +269,8 @@ export default function VenueMap({ nodes = [], edges = [] }) {
               key={key}
               type="button"
               onClick={() => setActivePhase(key)}
+              aria-pressed={activePhase === key}
+              aria-label={`Switch to ${preset.label} phase preset`}
               style={activePhase === key ? styles.phaseTabActive : styles.phaseTab}
             >
               <span style={styles.phaseTabLabel}>{preset.label}</span>
@@ -273,7 +281,7 @@ export default function VenueMap({ nodes = [], edges = [] }) {
       </div>
 
       <div style={styles.mapStage} ref={stageRef}>
-        <div style={styles.mapHud} data-overlay-ui="true">
+        <div style={styles.mapHud} data-overlay-ui="true" role="status" aria-live="polite">
           <div style={styles.hudEyebrow}>Arena Operations View</div>
           <div style={styles.hudTitle}>{phasePreset.label} preset</div>
           <div style={styles.hudSubtle}>{phasePreset.subtitle}</div>
@@ -295,6 +303,7 @@ export default function VenueMap({ nodes = [], edges = [] }) {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Jump to 101A, East Club Walk, Gate C..."
+              aria-label="Search zones and amenities"
               style={styles.searchInput}
             />
           </div>
@@ -317,13 +326,13 @@ export default function VenueMap({ nodes = [], edges = [] }) {
         </div>
 
         <div style={styles.zoomControls} data-overlay-ui="true">
-          <button type="button" style={styles.iconButton} onClick={() => setViewport(prev => ({ ...prev, scale: clamp(prev.scale + 0.2, MIN_SCALE, MAX_SCALE) }))}>
+          <button type="button" style={styles.iconButton} aria-label="Zoom in on venue map" onClick={() => setViewport(prev => ({ ...prev, scale: clamp(prev.scale + 0.2, MIN_SCALE, MAX_SCALE) }))}>
             <Plus size={14} />
           </button>
-          <button type="button" style={styles.iconButton} onClick={() => setViewport(prev => ({ ...prev, scale: clamp(prev.scale - 0.2, MIN_SCALE, MAX_SCALE) }))}>
+          <button type="button" style={styles.iconButton} aria-label="Zoom out on venue map" onClick={() => setViewport(prev => ({ ...prev, scale: clamp(prev.scale - 0.2, MIN_SCALE, MAX_SCALE) }))}>
             <Minus size={14} />
           </button>
-          <button type="button" style={styles.iconButton} onClick={() => setViewport({ scale: 1, x: 0, y: 0 })}>
+          <button type="button" style={styles.iconButton} aria-label="Reset venue map position" onClick={() => setViewport({ scale: 1, x: 0, y: 0 })}>
             <Move size={14} />
           </button>
           <div style={styles.zoomReadout}>{Math.round(viewport.scale * 100)}%</div>
@@ -338,6 +347,8 @@ export default function VenueMap({ nodes = [], edges = [] }) {
             viewBox="0 0 1000 700"
             style={styles.minimapSvg}
             onClick={handleMinimapJump}
+            role="img"
+            aria-label="Venue minimap navigation"
           >
             <rect x="24" y="24" width="952" height="652" rx="34" fill="rgba(9, 9, 8, 0.84)" stroke="rgba(246, 222, 170, 0.08)" />
             <ellipse cx="500" cy="350" rx="298" ry="212" fill="rgba(18, 18, 16, 0.84)" stroke="rgba(241, 205, 122, 0.12)" strokeWidth="2" />
@@ -392,7 +403,13 @@ export default function VenueMap({ nodes = [], edges = [] }) {
           onPointerUp={stopDragging}
           onPointerLeave={stopDragging}
         >
-          <svg viewBox="0 0 1000 700" style={styles.svg} className="venue-map-svg" aria-label="Venue floorplan">
+          <svg
+            viewBox="0 0 1000 700"
+            style={styles.svg}
+            className="venue-map-svg"
+            aria-label="Venue floorplan with live crowd density"
+            role="img"
+          >
             <defs>
               {Object.entries(STATUS_COLORS).map(([status, color]) => (
                 <filter key={status} id={`zone-glow-${status}`} x="-60%" y="-60%" width="220%" height="220%">
@@ -685,7 +702,12 @@ export default function VenueMap({ nodes = [], edges = [] }) {
           </div>
         </div>
       </div>
-    </div>
+      <div style={styles.visuallyHidden} aria-live="polite">
+        {selectedZone
+          ? `Selected zone ${selectedZone.label}. Current density ${Math.round(selectedZone.density * 100)} percent. Forecast ${Math.round(selectedZone.predictedDensity * 100)} percent.`
+          : `Venue map active in ${phasePreset.label} preset.`}
+      </div>
+    </section>
   )
 }
 
@@ -1451,5 +1473,16 @@ const styles = {
   noteText: {
     color: 'var(--text-secondary)',
     fontSize: 12,
+  },
+  visuallyHidden: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    padding: 0,
+    margin: -1,
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: 0,
   },
 }

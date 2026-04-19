@@ -412,50 +412,52 @@ export default function App() {
             <SystemHealthBar />
 
             {error && (
-              <div style={styles.errorBanner}>
+              <div style={styles.errorBanner} role="alert" aria-live="polite">
                 ⚠ {error} — Is the backend running on port 8000?
               </div>
             )}
 
-            <div style={styles.dashboardWrapper}>
-              <div style={styles.pageHeader}>
+            <main style={styles.dashboardWrapper} aria-label="Venue operations dashboard">
+              <section style={styles.pageHeader} aria-labelledby="dashboard-page-title">
                 <div>
                   <div style={styles.pageLabel}>
                     <Sparkles size={12} style={{ marginRight: 4 }} />
                     {demoMode ? 'GUIDED DEMO' : 'WORKSPACE'}
                   </div>
-                  <h2 style={styles.pageTitle}>{selectedPage.label}</h2>
+                  <h2 id="dashboard-page-title" style={styles.pageTitle}>{selectedPage.label}</h2>
                   <p style={styles.pageDescription}>{selectedPage.description}</p>
                   {demoMode && <p style={styles.demoNarrative}>{currentDemoNarrative}</p>}
                 </div>
                 <div style={styles.headerActions}>
                   <div style={styles.demoPanel}>
-                    <button type="button" style={demoMode ? styles.demoButtonActive : styles.demoButton} onClick={startDemo}>
+                    <button type="button" aria-pressed={demoMode} aria-label="Start guided demo mode" style={demoMode ? styles.demoButtonActive : styles.demoButton} onClick={startDemo}>
                       <Presentation size={14} style={{ marginRight: 6 }} />
                       Demo Mode
                     </button>
                     {demoMode && (
                       <>
-                        <button type="button" style={styles.demoStageButton} onClick={() => jumpDemoStep('spike')}>Trigger Spike</button>
-                        <button type="button" style={styles.demoStageButton} onClick={() => jumpDemoStep('prediction')}>Show Prediction</button>
-                        <button type="button" style={styles.demoStageButton} onClick={() => jumpDemoStep('action')}>Apply Action</button>
-                        <button type="button" style={styles.demoStageButton} onClick={() => jumpDemoStep('stabilized')}>Stabilize</button>
-                        <button type="button" style={styles.demoStageButton} onClick={nextDemoStep}>Next Beat</button>
-                        <button type="button" style={styles.demoStageButtonMuted} onClick={stopDemo}>Exit Demo</button>
+                        <button type="button" aria-label="Jump demo to congestion spike" style={styles.demoStageButton} onClick={() => jumpDemoStep('spike')}>Trigger Spike</button>
+                        <button type="button" aria-label="Jump demo to prediction step" style={styles.demoStageButton} onClick={() => jumpDemoStep('prediction')}>Show Prediction</button>
+                        <button type="button" aria-label="Jump demo to apply action step" style={styles.demoStageButton} onClick={() => jumpDemoStep('action')}>Apply Action</button>
+                        <button type="button" aria-label="Jump demo to stabilized step" style={styles.demoStageButton} onClick={() => jumpDemoStep('stabilized')}>Stabilize</button>
+                        <button type="button" aria-label="Advance to next demo beat" style={styles.demoStageButton} onClick={nextDemoStep}>Next Beat</button>
+                        <button type="button" aria-label="Exit demo mode" style={styles.demoStageButtonMuted} onClick={stopDemo}>Exit Demo</button>
                       </>
                     )}
                   </div>
-                  <button type="button" style={styles.themeButton} onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}>
+                  <button type="button" aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} style={styles.themeButton} onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}>
                     {theme === 'dark' ? <Sun size={14} style={{ marginRight: 6 }} /> : <Moon size={14} style={{ marginRight: 6 }} />}
                     {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
                   </button>
                 </div>
-                <div style={styles.pageTabs}>
+                <nav style={styles.pageTabs} aria-label="Dashboard pages">
                   {PAGES.map(page => (
                     <button
                       key={page.key}
                       type="button"
                       onClick={() => setActivePage(page.key)}
+                      aria-pressed={activePage === page.key}
+                      aria-label={`Open ${page.label} page`}
                       style={activePage === page.key ? styles.tabButtonActive : styles.tabButton}
                     >
                       {page.key === 'overview' && <Zap size={14} style={{ marginRight: 6 }} />}
@@ -464,11 +466,11 @@ export default function App() {
                       {page.label}
                     </button>
                   ))}
-                </div>
-              </div>
+                </nav>
+              </section>
 
               {demoMode && (
-                <div style={styles.demoBanner}>
+                <section style={styles.demoBanner} aria-live="polite" aria-label="Guided demo progress">
                   <div style={styles.demoBannerLeft}>
                     <div style={styles.demoBannerLabel}>
                       <Presentation size={14} style={{ marginRight: 6 }} />
@@ -489,6 +491,8 @@ export default function App() {
                         key={step}
                         type="button"
                         onClick={() => jumpDemoStep(step)}
+                        aria-label={`Jump demo to beat ${index + 1}: ${step}`}
+                        aria-pressed={index === demoStepIndex}
                         style={index === demoStepIndex ? styles.demoBeatActive : styles.demoBeat}
                       >
                         <span style={styles.demoBeatIndex}>0{index + 1}</span>
@@ -496,29 +500,35 @@ export default function App() {
                       </button>
                     ))}
                   </div>
-                </div>
+                </section>
               )}
 
-              {renderPageContent()}
-            </div>
+              <section
+                aria-live="polite"
+                aria-busy={loading}
+                aria-label={`${selectedPage.label} live content`}
+              >
+                {renderPageContent()}
+              </section>
+            </main>
 
             <div style={styles.chatLauncher}>
-              <button style={styles.chatButton} onClick={() => setConsoleOpen(prev => !prev)}>
+              <button style={styles.chatButton} aria-expanded={consoleOpen} aria-controls="agent-console-overlay" aria-label={consoleOpen ? 'Close agent console' : 'Open agent console'} onClick={() => setConsoleOpen(prev => !prev)}>
                 <MessageCircle size={18} />
               </button>
               <span style={styles.chatLabel}>Agent Console</span>
             </div>
 
             {consoleOpen && (
-              <div style={styles.consoleOverlay}>
+              <aside id="agent-console-overlay" style={styles.consoleOverlay} aria-label="Agent console panel">
                 <div style={styles.consoleHeader}>
                   <div style={styles.consoleTitle}>Agent Console</div>
-                  <button style={styles.consoleClose} onClick={() => setConsoleOpen(false)}>
+                  <button style={styles.consoleClose} aria-label="Close agent console" onClick={() => setConsoleOpen(false)}>
                     <X size={14} />
                   </button>
                 </div>
                 <AgentConsole />
-              </div>
+              </aside>
             )}
           </div>
         } />

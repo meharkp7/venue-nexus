@@ -26,9 +26,21 @@ export default function SimControls({ running, loading, tick, phase, density, al
   })()
 
   return (
-    <div style={styles.wrap} className="card widget-float">
+    <section
+      style={styles.wrap}
+      className="card widget-float"
+      aria-label="Live simulation controls"
+      aria-live="polite"
+    >
       <div style={styles.progressWrap}>
-        <div style={styles.progressBar}>
+        <div
+          style={styles.progressBar}
+          role="progressbar"
+          aria-label="Event progress"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress}
+        >
           <div style={{ ...styles.progressFill, width: `${progress}%` }} />
           <div style={{ ...styles.progressThumb, left: `${progress}%` }} />
         </div>
@@ -41,28 +53,28 @@ export default function SimControls({ running, loading, tick, phase, density, al
       </div>
 
       <div style={styles.controls}>
-        <button style={styles.btn} onClick={onReset} title="Reset">
+        <button style={styles.btn} onClick={onReset} title="Reset" aria-label="Reset simulation">
           <RotateCcw size={14} color="var(--text-secondary)" />
         </button>
 
-        <button style={styles.btn} onClick={onStep} disabled={running || loading} title="Step once">
+        <button style={styles.btn} onClick={onStep} disabled={running || loading} title="Step once" aria-label="Advance simulation by one step">
           <SkipForward size={14} color={running ? 'var(--text-muted)' : 'var(--text-secondary)'} />
         </button>
 
         {running ? (
-          <button style={{ ...styles.btn, ...styles.primaryBtn }} onClick={onPause}>
+          <button style={{ ...styles.btn, ...styles.primaryBtn }} onClick={onPause} aria-label="Pause live simulation">
             <Pause size={15} color="#080c10" />
             <span>PAUSE</span>
           </button>
         ) : (
           <button style={{ ...styles.btn, ...styles.primaryBtn, background: 'rgba(212, 175, 55, 0.14)',
-            borderColor: 'rgba(212, 175, 55, 0.28)', color: '#D4AF37' }} onClick={onPlay}>
+            borderColor: 'rgba(212, 175, 55, 0.28)', color: '#D4AF37' }} onClick={onPlay} aria-label="Start live simulation">
             <Play size={15} color="#FFD700" />
             <span style={{ color: '#FFD700' }}>SIMULATE</span>
           </button>
         )}
 
-        <div style={styles.tickDisplay}>
+        <div style={styles.tickDisplay} role="status" aria-label={`Current tick ${tick}`}>
           <span style={styles.tickLabel}>TICK</span>
           <span style={styles.tickValue}>{String(tick).padStart(4, '0')}</span>
         </div>
@@ -85,7 +97,7 @@ export default function SimControls({ running, loading, tick, phase, density, al
           “VenueNexus doesn’t react to congestion — it prevents it.”
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 
