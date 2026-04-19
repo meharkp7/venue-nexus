@@ -1,6 +1,6 @@
 # VenueNexus Frontend
 
-React + Vite dashboard for the VenueNexus crowd management system.
+React + Vite dashboard for the VenueNexus venue intelligence system.
 
 ## Setup
 
@@ -26,14 +26,27 @@ uvicorn app.main:app --reload
 - **Lucide React** — icons
 
 ## Features
-- Live venue map with node density visualization
+- Premium 2D venue floorplan viewer with real zones and corridor flow
+- Searchable zone jump box and breadcrumb navigation
+- Zoom/pan inspection with minimap jump navigation and snap-to-zone zoom
+- Animated phase presets for ingress, halftime, and egress
+- Floating inspector drawer anchored to the selected zone
+- Amenities and infrastructure overlays: suites, clubs, merch, restrooms, first-aid, stairs, vomitories
 - Real-time congestion alerts with severity levels
 - Attendee nudge messages with incentives
 - Exit routing recommendations
 - Density trend chart
-- Sortable node status table
+- Sortable zone status table
 - Agent console (Vertex AI or rule-based fallback)
 - Simulation controls: play, pause, step, reset
+
+## Important source links
+
+- Floorplan component: [src/components/VenueMap.jsx](./src/components/VenueMap.jsx)
+- Floorplan geometry and mapping: [src/utils/venueFloorplan.js](./src/utils/venueFloorplan.js)
+- Main dashboard composition: [src/App.jsx](./src/App.jsx)
+- Simulation hook: [src/hooks/useSimulation.js](./src/hooks/useSimulation.js)
+- API client: [src/services/api.js](./src/services/api.js)
 
 ## Build for production
 ```bash
